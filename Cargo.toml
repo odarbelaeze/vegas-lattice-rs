@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Oscar David Arbeláez Echeverri <odarbelaeze@gmail.com>"]
 
 [dependencies]
+serde_json = "1.0"
+serde = "*"
+serde_derive = "*"
