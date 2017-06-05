@@ -1,0 +1,13 @@
+name: vegas lattice
+version: "0.0.1"
+about: "creates simple lattice graphs."
+author: Oscar Arbelaez <@odarbelaeze>
+
+global_settings:
+  - ArgRequiredElseHelp
+  - ColoredHelp
+
+args:
+  - input:
+      help: Input file describing the structure
+      takes_value: true
