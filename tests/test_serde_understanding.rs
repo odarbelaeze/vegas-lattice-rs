@@ -18,6 +18,11 @@ struct People {
     people: Vec<Person>
 }
 
+#[derive(Serialize, Deserialize)]
+struct Optionals {
+    option: Option<i64>
+}
+
 fn typed_example(data: &str) -> Result<(), Error> {
     // Some JSON input data as a &str. Maybe this comes from the user.
 
@@ -112,4 +117,21 @@ fn it_expands_vectors() {
     ]"#;
     let result: Result<Vec<Person>, Error> = serde_json::from_str(data);
     assert!(result.is_ok());
+}
+
+
+#[test]
+fn optional_values_can_be_left_out() {
+    let data = r#"
+        {
+            "optional": 1
+        }
+    "#;
+    let result: Result<Optionals, Error> = serde_json::from_str(data);
+    assert!(result.is_ok());
+    let data = r#"{}"#;
+    let result: Result<Optionals, Error> = serde_json::from_str(data);
+    assert!(result.is_ok());
+    let structure = result.unwrap();
+    assert!(structure.option.is_none());
 }
