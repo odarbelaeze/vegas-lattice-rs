@@ -1,1 +1,10 @@
-{}
+{
+    "basis": [
+        {"type": "Fe", "position": [0, 0, 0]}
+    ],
+    "vertices": [
+        {"source": 0, "target": 0, "delta": [1, 0, 0]},
+        {"source": 0, "target": 0, "delta": [0, 1, 0]},
+        {"source": 0, "target": 0, "delta": [0, 0, 1]}
+    ]
+}

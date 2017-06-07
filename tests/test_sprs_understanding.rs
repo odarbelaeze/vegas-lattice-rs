@@ -11,8 +11,8 @@ fn test_csr_matrix_creation() {
         vec![0, 1, 0, 2, 2],
         vec![1.0, 2.0, 3.0, 4.0, 5.0],
     );
-    assert_eq!(*mat.get(0, 0).unwrap(), 1.0);
-    assert_eq!(*mat.get(2, 2).unwrap(), 5.0);
+    assert!(*mat.get(0, 0).unwrap() - 1.0 < 1e-12);
+    assert!(*mat.get(2, 2).unwrap() - 5.0 < 1e-12);
 }
 
 
