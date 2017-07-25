@@ -1,10 +1,23 @@
-#[macro_use] extern crate clap;
-use clap::App;
-use std::path::Path;
+extern crate docopt;
+use docopt::Docopt;
+
+
+const USAGE: &'static str = "
+Vegas lattice.
+
+Usage:
+    vlattice (-h | --help)
+    vlattice --version
+
+Options:
+    -h --help       Show this message.
+    --version       Show version and exit.
+";
 
 fn main() {
-    let yml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yml).get_matches();
-    let input = Path::new(matches.value_of("input").unwrap());
-    print!("{:?}", input);
+    let args = Docopt::new(USAGE)
+        .and_then(|doc| doc.version(Some("0.0.1".to_string())).parse())
+        .unwrap_or_else(|e| e.exit());
+
+    println!("{:?}", args);
 }
