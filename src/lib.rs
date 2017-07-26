@@ -1,6 +1,7 @@
 extern crate serde;
 extern crate serde_json;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 
 use serde_json::Error;
 use std::collections::HashSet;
@@ -91,36 +92,26 @@ impl std::str::FromStr for Lattice {
     }
 }
 
-
 #[cfg(test)]
-mod tests {
-    use super::{Site, Vertex, Lattice};
-    use std::str::FromStr;
-
-    #[test]
-    fn vertex_site_can_be_read_from_str() {
-        let data = r#"
-            {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
-        "#;
-        let site_result = Site::from_str(data);
-        assert!(site_result.is_ok());
-    }
+mod test {
+    use super::{Site, Vertex};
 
     #[test]
     fn site_will_take_optional_tags() {
         let data = r#"
-            {"id": 0, "kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
-        "#;
+        {"id": 0, "kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
+    "#;
         let site_result: Result<Site, _> = data.parse();
         assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags, Some(vec!["core".to_string(), "inner".to_string()]));
+        assert_eq!(site_result.unwrap().tags,
+                   Some(vec!["core".to_string(), "inner".to_string()]));
     }
 
     #[test]
     fn site_will_parse_id() {
         let data = r#"
-            {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
-        "#;
+        {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+    "#;
         let site_result: Result<Site, _> = data.parse();
         assert!(site_result.is_ok());
         assert_eq!(site_result.unwrap().id, 0);
@@ -129,60 +120,11 @@ mod tests {
     #[test]
     fn vertex_will_take_optional_tags() {
         let data = r#"
-            {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-        "#;
+        {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+    "#;
         let site_result: Result<Vertex, _> = data.parse();
         assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags, Some(vec!["core".to_string(), "inner".to_string()]));
-    }
-
-    #[test]
-    fn lattice_example() {
-        let data = r#"
-            {
-                "sites": [
-                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-                ]
-            }
-        "#;
-        let site_result: Result<Lattice, _> = data.parse();
-        assert!(site_result.is_ok());
-    }
-
-    #[test]
-    fn lattice_will_fail_for_inconsistent_vertices() {
-        let data = r#"
-            {
-                "sites": [
-                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 1, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-                ]
-            }
-        "#;
-        let site_result: Result<Lattice, _> = data.parse();
-        assert!(site_result.is_err());
-    }
-
-    #[test]
-    fn lattice_will_fail_for_duplicated_site_ids() {
-        let data = r#"
-            {
-                "sites": [
-                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]},
-                    {"id": 0, "kind": "Fe+", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-                ]
-            }
-        "#;
-        let site_result: Result<Lattice, _> = data.parse();
-        println!("{:?}", site_result);
-        assert!(site_result.is_err());
+        assert_eq!(site_result.unwrap().tags,
+                   Some(vec!["core".to_string(), "inner".to_string()]));
     }
 }
