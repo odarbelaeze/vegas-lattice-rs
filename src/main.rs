@@ -13,12 +13,13 @@ const USAGE: &'static str = "
 Vegas lattice.
 
 Usage:
-    vegas-lattice check [--compressed] [<input>]
-    vegas-lattice drop [-x -y -z] [--compressed] [<input>]
+    vegas-lattice check [--compress] [<input>]
+    vegas-lattice drop [-x -y -z] [--compress] [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
 Options:
+    -c --compress   Compress the output
     -h --help       Show this message.
     --version       Show version and exit.
 ";
@@ -37,8 +38,8 @@ fn read(input: &str) -> Result<Lattice, Box<std::error::Error>> {
 }
 
 
-fn write(lattice: Lattice, compressed: bool) {
-    if compressed {
+fn write(lattice: Lattice, compress: bool) {
+    if compress {
         println!("{}", serde_json::to_string(&lattice).unwrap());
     } else {
         println!("{}", serde_json::to_string_pretty(&lattice).unwrap());
@@ -48,7 +49,7 @@ fn write(lattice: Lattice, compressed: bool) {
 
 fn check(args: ArgvMap) -> Result<(), Box<std::error::Error>> {
     let lattice = read(args.get_str("<input>"))?;
-    write(lattice, args.get_bool("--compressed"));
+    write(lattice, args.get_bool("--compress"));
     Ok(())
 }
 
@@ -64,7 +65,7 @@ fn drop(args: ArgvMap) -> Result<(), Box<std::error::Error>> {
     if args.get_bool("-z") {
         lattice = lattice.drop(Axis::Z);
     }
-    write(lattice, args.get_bool("--compressed"));
+    write(lattice, args.get_bool("--compress"));
     Ok(())
 }
 
