@@ -2,7 +2,7 @@
 
 extern crate vegas_lattice;
 
-use vegas_lattice::{Site, Vertex, Lattice};
+use vegas_lattice::{Site, Lattice};
 use std::str::FromStr;
 
 
