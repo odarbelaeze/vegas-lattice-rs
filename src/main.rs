@@ -13,9 +13,9 @@ const USAGE: &'static str = "
 Vegas lattice.
 
 Usage:
-    vlattice check [--compressed] [<input>]
-    vlattice (-h | --help)
-    vlattice --version
+    vegas-lattice check [--compressed] [<input>]
+    vegas-lattice (-h | --help)
+    vegas-lattice --version
 
 Options:
     -h --help       Show this message.
