@@ -14,6 +14,7 @@ Vegas lattice.
 
 Usage:
     vegas-lattice check [--compressed] [<input>]
+    vegas-lattice drop [-x -y -z] [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 

@@ -80,6 +80,9 @@ impl StdError for LatticeError {
 }
 
 
+pub enum Axis { X, Y, Z }
+
+
 impl Lattice {
     fn are_vertices_consistent(&self) -> bool {
         let site_ids: HashSet<_> = self.sites
@@ -112,6 +115,15 @@ impl Lattice {
         }
         Ok(self)
     }
+
+    pub fn drop(mut self, axis: Axis) -> Self {
+        self.vertices = match axis {
+            Axis::X => self.vertices.into_iter().filter(|v| v.delta.0 == 0).collect(),
+            Axis::Y => self.vertices.into_iter().filter(|v| v.delta.1 == 0).collect(),
+            Axis::Z => self.vertices.into_iter().filter(|v| v.delta.2 == 0).collect(),
+        };
+        self
+    }
 }
 
 
@@ -127,13 +139,13 @@ impl std::str::FromStr for Lattice {
 
 #[cfg(test)]
 mod test {
-    use super::{Site, Vertex};
+    use super::{Site, Vertex, Lattice, Axis};
 
     #[test]
     fn site_will_take_optional_tags() {
         let data = r#"
-        {"id": 0, "kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
-    "#;
+            {"id": 0, "kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
+        "#;
         let site_result: Result<Site, _> = data.parse();
         assert!(site_result.is_ok());
         assert_eq!(site_result.unwrap().tags,
@@ -143,8 +155,8 @@ mod test {
     #[test]
     fn site_will_parse_id() {
         let data = r#"
-        {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
-    "#;
+            {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+        "#;
         let site_result: Result<Site, _> = data.parse();
         assert!(site_result.is_ok());
         assert_eq!(site_result.unwrap().id, 0);
@@ -153,11 +165,45 @@ mod test {
     #[test]
     fn vertex_will_take_optional_tags() {
         let data = r#"
-        {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-    "#;
+            {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+        "#;
         let site_result: Result<Vertex, _> = data.parse();
         assert!(site_result.is_ok());
         assert_eq!(site_result.unwrap().tags,
                    Some(vec!["core".to_string(), "inner".to_string()]));
+    }
+
+    #[test]
+    fn drop_example() {
+        let data = r#"
+            {
+                "sites": [
+                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+                ]
+            }
+        "#;
+        let lattice: Lattice = data.parse().unwrap();
+        let lattice = lattice.drop(Axis::X);
+        assert!(lattice.vertices.len() == 1);
+    }
+
+    #[test]
+    fn drop_example_actually_dropping() {
+        let data = r#"
+            {
+                "sites": [
+                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+                ]
+            }
+        "#;
+        let lattice: Lattice = data.parse().unwrap();
+        let lattice = lattice.drop(Axis::Z);
+        assert!(lattice.vertices.len() == 0);
     }
 }
