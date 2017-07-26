@@ -48,9 +48,9 @@ fn main() {
         .unwrap_or_else(|e| e.exit());
 
     if args.get_bool("check") {
-        // Check program
         check(args).unwrap_or_else(|e| {
-            eprint!("{:?}", e);
+            eprintln!("{}", e);
+            std::process::exit(1);
         });
     } else {
         println!("{:?}", args);
