@@ -5,6 +5,8 @@ extern crate serde_derive;
 
 use serde_json::Error;
 use std::collections::HashSet;
+use std::error::Error as StdError;
+use std::fmt;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,6 +55,26 @@ pub enum LatticeError {
     JsonParseError(Error),
     InconsistentVertices,
     NonUniqueSiteIds,
+}
+
+impl fmt::Display for LatticeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            LatticeError::JsonParseError(_) => f.write_str("JsonParseError"),
+            LatticeError::InconsistentVertices => f.write_str("InconsistentVertices"),
+            LatticeError::NonUniqueSiteIds => f.write_str("NonUniqueIds"),
+        }
+    }
+}
+
+impl StdError for LatticeError {
+    fn description(&self) -> &str {
+        match *self {
+            LatticeError::JsonParseError(_) => "Failed to parse JSON.",
+            LatticeError::InconsistentVertices => "The vertices are inconsistent.",
+            LatticeError::NonUniqueSiteIds => "The ids of the sites are not unique.",
+        }
+    }
 }
 
 
