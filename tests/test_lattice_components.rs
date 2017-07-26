@@ -5,6 +5,7 @@ extern crate vegas_lattice;
 use vegas_lattice::{Site, Vertex, Lattice};
 use std::str::FromStr;
 
+
 #[test]
 fn vertex_site_can_be_read_from_str() {
     let data = r#"
@@ -13,9 +14,6 @@ fn vertex_site_can_be_read_from_str() {
     let site_result = Site::from_str(data);
     assert!(site_result.is_ok());
 }
-
-
-
 
 #[test]
 fn lattice_example() {

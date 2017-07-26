@@ -5,6 +5,8 @@ extern crate serde_derive;
 
 use serde_json::Error;
 use std::collections::HashSet;
+use std::error::Error as StdError;
+use std::fmt;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -56,27 +58,57 @@ pub enum LatticeError {
 }
 
 
+impl fmt::Display for LatticeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            LatticeError::JsonParseError(_) => f.write_str("JsonParseError"),
+            LatticeError::InconsistentVertices => f.write_str("InconsistentVertices"),
+            LatticeError::NonUniqueSiteIds => f.write_str("NonUniqueIds"),
+        }
+    }
+}
+
+
+impl StdError for LatticeError {
+    fn description(&self) -> &str {
+        match *self {
+            LatticeError::JsonParseError(_) => "Failed to parse JSON.",
+            LatticeError::InconsistentVertices => "The vertices are inconsistent.",
+            LatticeError::NonUniqueSiteIds => "The ids of the sites are not unique.",
+        }
+    }
+}
+
+
 impl Lattice {
     fn are_vertices_consistent(&self) -> bool {
-        let site_ids: HashSet<_> = self.sites.iter().map(|site| site.id).collect();
-        let vertex_ids: HashSet<_> = self.vertices.iter().map(|vertex| vertex.source).chain(
-            self.vertices.iter().map(|vertex| vertex.target)
-        ).collect();
+        let site_ids: HashSet<_> = self.sites
+            .iter()
+            .map(|site| site.id)
+            .collect();
+        let vertex_ids: HashSet<_> = self.vertices
+            .iter()
+            .map(|vertex| vertex.source)
+            .chain(self.vertices.iter().map(|vertex| vertex.target))
+            .collect();
         vertex_ids.is_subset(&site_ids)
     }
 
     fn are_site_ids_unique(&self) -> bool {
-        let site_ids: Vec<_> = self.sites.iter().map(|site| site.id).collect();
+        let site_ids: Vec<_> = self.sites
+            .iter()
+            .map(|site| site.id)
+            .collect();
         let unique_site_ids: HashSet<_> = site_ids.iter().collect();
         site_ids.len() == unique_site_ids.len()
     }
 
     pub fn validate(self) -> Result<Self, LatticeError> {
         if !self.are_site_ids_unique() {
-            return Err(LatticeError::NonUniqueSiteIds)
+            return Err(LatticeError::NonUniqueSiteIds);
         }
         if !self.are_vertices_consistent() {
-            return Err(LatticeError::InconsistentVertices)
+            return Err(LatticeError::InconsistentVertices);
         }
         Ok(self)
     }
@@ -91,6 +123,7 @@ impl std::str::FromStr for Lattice {
             .and_then(|lattice: Lattice| lattice.validate())
     }
 }
+
 
 #[cfg(test)]
 mod test {
