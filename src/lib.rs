@@ -3,6 +3,7 @@ extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 
 use serde_json::Error;
+use std::collections::HashSet;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,9 +40,61 @@ impl std::str::FromStr for Vertex {
 }
 
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Lattice {
+    sites: Vec<Site>,
+    vertices: Vec<Vertex>,
+}
+
+
+#[derive(Debug)]
+pub enum LatticeError {
+    JsonParseError(Error),
+    InconsistentVertices,
+    NonUniqueSiteIds,
+}
+
+
+impl Lattice {
+    fn are_vertices_consistent(&self) -> bool {
+        let site_ids: HashSet<_> = self.sites.iter().map(|site| site.id).collect();
+        let vertex_ids: HashSet<_> = self.vertices.iter().map(|vertex| vertex.source).chain(
+            self.vertices.iter().map(|vertex| vertex.target)
+        ).collect();
+        vertex_ids.is_subset(&site_ids)
+    }
+
+    fn are_site_ids_unique(&self) -> bool {
+        let site_ids: Vec<_> = self.sites.iter().map(|site| site.id).collect();
+        let unique_site_ids: HashSet<_> = site_ids.iter().collect();
+        site_ids.len() == unique_site_ids.len()
+    }
+
+    pub fn validate(self) -> Result<Self, LatticeError> {
+        if !self.are_site_ids_unique() {
+            return Err(LatticeError::NonUniqueSiteIds)
+        }
+        if !self.are_vertices_consistent() {
+            return Err(LatticeError::InconsistentVertices)
+        }
+        Ok(self)
+    }
+}
+
+
+impl std::str::FromStr for Lattice {
+    type Err = LatticeError;
+    fn from_str(source: &str) -> Result<Lattice, Self::Err> {
+        serde_json::from_str(source)
+            .map_err(|err| LatticeError::JsonParseError(err))
+            .and_then(|lattice: Lattice| lattice.validate())
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
-    use super::{Site, Vertex};
+    use super::{Site, Vertex, Lattice};
     use std::str::FromStr;
 
     #[test]
@@ -81,5 +134,55 @@ mod tests {
         let site_result: Result<Vertex, _> = data.parse();
         assert!(site_result.is_ok());
         assert_eq!(site_result.unwrap().tags, Some(vec!["core".to_string(), "inner".to_string()]));
+    }
+
+    #[test]
+    fn lattice_example() {
+        let data = r#"
+            {
+                "sites": [
+                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+                ]
+            }
+        "#;
+        let site_result: Result<Lattice, _> = data.parse();
+        assert!(site_result.is_ok());
+    }
+
+    #[test]
+    fn lattice_will_fail_for_inconsistent_vertices() {
+        let data = r#"
+            {
+                "sites": [
+                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 1, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+                ]
+            }
+        "#;
+        let site_result: Result<Lattice, _> = data.parse();
+        assert!(site_result.is_err());
+    }
+
+    #[test]
+    fn lattice_will_fail_for_duplicated_site_ids() {
+        let data = r#"
+            {
+                "sites": [
+                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]},
+                    {"id": 0, "kind": "Fe+", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+                ]
+            }
+        "#;
+        let site_result: Result<Lattice, _> = data.parse();
+        println!("{:?}", site_result);
+        assert!(site_result.is_err());
     }
 }
