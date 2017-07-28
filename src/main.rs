@@ -2,6 +2,8 @@ extern crate docopt;
 extern crate serde_json;
 extern crate vegas_lattice;
 
+use std::error::Error;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read};
 
@@ -15,6 +17,7 @@ Vegas lattice.
 Usage:
     vegas-lattice check [--compress] [<input>]
     vegas-lattice drop [-x -y -z] [--compress] [<input>]
+    vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [--compress] [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
@@ -25,7 +28,7 @@ Options:
 ";
 
 
-fn read(input: &str) -> Result<Lattice, Box<std::error::Error>> {
+fn read(input: &str) -> Result<Lattice, Box<Error>> {
     let mut data = String::new();
     if !input.is_empty() {
         let mut file = File::open(input)?;
@@ -47,14 +50,14 @@ fn write(lattice: Lattice, compress: bool) {
 }
 
 
-fn check(args: ArgvMap) -> Result<(), Box<std::error::Error>> {
+fn check(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
     write(lattice, args.get_bool("--compress"));
     Ok(())
 }
 
 
-fn drop(args: ArgvMap) -> Result<(), Box<std::error::Error>> {
+fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
     if args.get_bool("-x") {
         lattice = lattice.drop(Axis::X);
@@ -70,7 +73,30 @@ fn drop(args: ArgvMap) -> Result<(), Box<std::error::Error>> {
 }
 
 
-fn check_error(res: Result<(), Box<std::error::Error>>) {
+fn axis_map<'a>() -> HashMap<&'a str, Axis> {
+    let mut map = HashMap::new();
+    map.insert("--x", Axis::X);
+    map.insert("--y", Axis::Y);
+    map.insert("--z", Axis::Z);
+    return map;
+}
+
+fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
+    let map = axis_map();
+    let mut lattice = read(args.get_str("<input>"))?;
+    for (flag, axis) in &map {
+        let string_value = args.get_str(flag);
+        if !string_value.is_empty() {
+            let size: usize = string_value.parse()?;
+            lattice = lattice.expand_along(*axis, size);
+        }
+    }
+    write(lattice, args.get_bool("--compress"));
+    Ok(())
+}
+
+
+fn check_error(res: Result<(), Box<Error>>) {
     match res {
         Err(e) => {
             eprintln!("{}", e);
@@ -90,6 +116,8 @@ fn main() {
         check_error(check(args));
     } else if args.get_bool("drop") {
         check_error(drop(args));
+    } else if args.get_bool("expand") {
+        check_error(expand(args));
     } else {
         println!("{:?}", args);
     }

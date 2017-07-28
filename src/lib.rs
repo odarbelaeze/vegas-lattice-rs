@@ -1,17 +1,18 @@
+extern crate itertools;
 extern crate serde;
-extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_json;
 
-use serde_json::Error;
-use std::collections::HashSet;
 use std::error::Error as StdError;
 use std::fmt;
 
+use itertools::Itertools;
+use serde_json::Error as SerdeError;
 
-#[derive(Debug, Serialize, Deserialize)]
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
-    id: u64,
     kind: String,
     position: (f64, f64, f64),
     tags: Option<Vec<String>>,
@@ -19,24 +20,37 @@ pub struct Site {
 
 
 impl std::str::FromStr for Site {
-    type Err = Error;
+    type Err = SerdeError;
     fn from_str(source: &str) -> Result<Site, Self::Err> {
         serde_json::from_str(source)
     }
 }
 
 
+impl Site {
+    pub fn move_along(&self, axis: Axis, distance: f64) -> Self {
+        let mut site = self.clone();
+        match axis {
+            Axis::X => site.position.0 += distance,
+            Axis::Y => site.position.1 += distance,
+            Axis::Z => site.position.2 += distance,
+        };
+        site
+    }
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Vertex {
-    source: u64,
-    target: u64,
+    source: usize,
+    target: usize,
     delta: (i32, i32, i32),
     tags: Option<Vec<String>>,
 }
 
 
 impl std::str::FromStr for Vertex {
-    type Err = Error;
+    type Err = SerdeError;
     fn from_str(source: &str) -> Result<Vertex, Self::Err> {
         serde_json::from_str(source)
     }
@@ -52,9 +66,8 @@ pub struct Lattice {
 
 #[derive(Debug)]
 pub enum LatticeError {
-    JsonParseError(Error),
+    JsonParseError(SerdeError),
     InconsistentVertices,
-    NonUniqueSiteIds,
 }
 
 
@@ -63,7 +76,6 @@ impl fmt::Display for LatticeError {
         match *self {
             LatticeError::JsonParseError(_) => f.write_str("JsonParseError"),
             LatticeError::InconsistentVertices => f.write_str("InconsistentVertices"),
-            LatticeError::NonUniqueSiteIds => f.write_str("NonUniqueIds"),
         }
     }
 }
@@ -74,42 +86,25 @@ impl StdError for LatticeError {
         match *self {
             LatticeError::JsonParseError(_) => "Failed to parse JSON.",
             LatticeError::InconsistentVertices => "The vertices are inconsistent.",
-            LatticeError::NonUniqueSiteIds => "The ids of the sites are not unique.",
         }
     }
 }
 
 
+#[derive(Debug, Clone, Copy)]
 pub enum Axis { X, Y, Z }
 
 
 impl Lattice {
     fn are_vertices_consistent(&self) -> bool {
-        let site_ids: HashSet<_> = self.sites
-            .iter()
-            .map(|site| site.id)
-            .collect();
-        let vertex_ids: HashSet<_> = self.vertices
+        self.vertices
             .iter()
             .map(|vertex| vertex.source)
             .chain(self.vertices.iter().map(|vertex| vertex.target))
-            .collect();
-        vertex_ids.is_subset(&site_ids)
-    }
-
-    fn are_site_ids_unique(&self) -> bool {
-        let site_ids: Vec<_> = self.sites
-            .iter()
-            .map(|site| site.id)
-            .collect();
-        let unique_site_ids: HashSet<_> = site_ids.iter().collect();
-        site_ids.len() == unique_site_ids.len()
+            .all(|id| id < self.sites.len())
     }
 
     pub fn validate(self) -> Result<Self, LatticeError> {
-        if !self.are_site_ids_unique() {
-            return Err(LatticeError::NonUniqueSiteIds);
-        }
         if !self.are_vertices_consistent() {
             return Err(LatticeError::InconsistentVertices);
         }
@@ -122,6 +117,15 @@ impl Lattice {
             Axis::Y => self.vertices.into_iter().filter(|v| v.delta.1 == 0).collect(),
             Axis::Z => self.vertices.into_iter().filter(|v| v.delta.2 == 0).collect(),
         };
+        self
+    }
+
+    pub fn expand_along(mut self, axis: Axis, size: usize) -> Self {
+        self.sites = (0..size)
+            .cartesian_product(self.sites)
+            // TODO this is going to break because of the size
+            .map(|(index, site)| site.move_along(axis, (index * 1) as f64))
+            .collect();
         self
     }
 }
@@ -144,7 +148,7 @@ mod test {
     #[test]
     fn site_will_take_optional_tags() {
         let data = r#"
-            {"id": 0, "kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
+            {"kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
         "#;
         let site_result: Result<Site, _> = data.parse();
         assert!(site_result.is_ok());
@@ -152,15 +156,6 @@ mod test {
                    Some(vec!["core".to_string(), "inner".to_string()]));
     }
 
-    #[test]
-    fn site_will_parse_id() {
-        let data = r#"
-            {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
-        "#;
-        let site_result: Result<Site, _> = data.parse();
-        assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().id, 0);
-    }
 
     #[test]
     fn vertex_will_take_optional_tags() {
@@ -178,7 +173,7 @@ mod test {
         let data = r#"
             {
                 "sites": [
-                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+                    {"kind": "Fe", "position": [0, 0, 0]}
                 ],
                 "vertices": [
                     {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
@@ -195,7 +190,7 @@ mod test {
         let data = r#"
             {
                 "sites": [
-                    {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+                    {"kind": "Fe", "position": [0, 0, 0]}
                 ],
                 "vertices": [
                     {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
@@ -205,5 +200,21 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let lattice = lattice.drop(Axis::Z);
         assert!(lattice.vertices.len() == 0);
+    }
+
+    #[test]
+    fn single_lattice_expansion_1d() {
+        let data = r#"
+            {
+                "sites": [
+                    {"kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": []
+            }
+        "#;
+        let lattice: Lattice = data.parse().unwrap();
+        let output = lattice.expand_along(Axis::X, 2);
+        assert_eq!(output.sites.len(), 2);
+        assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
     }
 }
