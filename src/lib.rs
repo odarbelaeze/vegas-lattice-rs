@@ -11,6 +11,15 @@ use itertools::Itertools;
 use serde_json::Error as SerdeError;
 
 
+fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
+    if num < 0 {
+        (modulus as i32 + num % modulus as i32, num / modulus as i32 - 1)
+    } else {
+        (num % modulus as i32, num / modulus as i32)
+    }
+}
+
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
     kind: String,
@@ -40,7 +49,7 @@ impl Site {
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {
     source: usize,
     target: usize,
@@ -57,8 +66,38 @@ impl std::str::FromStr for Vertex {
 }
 
 
+impl Vertex {
+    fn delta_along(&self, axis: Axis) -> i32 {
+        match axis {
+            Axis::X => self.delta.0,
+            Axis::Y => self.delta.1,
+            Axis::Z => self.delta.2,
+        }
+    }
+
+    fn move_along(&self, axis: Axis, index: usize, nsites: usize, limit: usize) -> Self {
+        let mut vertex = self.clone();
+        let distance = index * nsites;
+        let new_nsites = limit * nsites;
+        vertex.source += distance;
+        vertex.target += distance;
+        let delta = vertex.delta_along(axis);
+        let target = vertex.target as i32 + delta * nsites as i32;
+        let (target, delta) = python_mod(target, new_nsites);
+        vertex.target = target as usize;
+        match axis {
+            Axis::X => vertex.delta.0 = delta,
+            Axis::Y => vertex.delta.1 = delta,
+            Axis::Z => vertex.delta.2 = delta,
+        };
+        vertex
+    }
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
+    size: (f64, f64, f64),
     sites: Vec<Site>,
     vertices: Vec<Vertex>,
 }
@@ -68,6 +107,7 @@ pub struct Lattice {
 pub enum LatticeError {
     JsonParseError(SerdeError),
     InconsistentVertices,
+    NegativeSize,
 }
 
 
@@ -76,6 +116,7 @@ impl fmt::Display for LatticeError {
         match *self {
             LatticeError::JsonParseError(_) => f.write_str("JsonParseError"),
             LatticeError::InconsistentVertices => f.write_str("InconsistentVertices"),
+            LatticeError::NegativeSize => f.write_str("NegativeSize"),
         }
     }
 }
@@ -86,13 +127,18 @@ impl StdError for LatticeError {
         match *self {
             LatticeError::JsonParseError(_) => "Failed to parse JSON.",
             LatticeError::InconsistentVertices => "The vertices are inconsistent.",
+            LatticeError::NegativeSize => "A negative size value is hard to grasp.",
         }
     }
 }
 
 
 #[derive(Debug, Clone, Copy)]
-pub enum Axis { X, Y, Z }
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
 
 
 impl Lattice {
@@ -108,6 +154,9 @@ impl Lattice {
         if !self.are_vertices_consistent() {
             return Err(LatticeError::InconsistentVertices);
         }
+        if self.size.0 < 0.0 || self.size.1 < 0.0 || self.size.2 < 0.0 {
+            return Err(LatticeError::NegativeSize);
+        }
         Ok(self)
     }
 
@@ -120,12 +169,34 @@ impl Lattice {
         self
     }
 
-    pub fn expand_along(mut self, axis: Axis, size: usize) -> Self {
-        self.sites = (0..size)
+    pub fn size_along(&self, axis: Axis) -> f64 {
+        match axis {
+            Axis::X => self.size.0,
+            Axis::Y => self.size.1,
+            Axis::Z => self.size.2,
+        }
+    }
+
+    pub fn expand_along(mut self, axis: Axis, amount: usize) -> Self {
+        let size = self.size_along(axis);
+        let n_sites = self.sites.len();
+
+        self.sites = (0..amount)
             .cartesian_product(self.sites)
-            // TODO this is going to break because of the size
-            .map(|(index, site)| site.move_along(axis, (index * 1) as f64))
+            .map(|(index, site)| site.move_along(axis, (index as f64) * size))
             .collect();
+
+        self.vertices = (0..amount)
+            .cartesian_product(self.vertices)
+            .map(|(index, vertex)| vertex.move_along(axis, index, n_sites, amount))
+            .collect();
+
+        match axis {
+            Axis::X => self.size.0 *= amount as f64,
+            Axis::Y => self.size.1 *= amount as f64,
+            Axis::Z => self.size.2 *= amount as f64,
+        }
+
         self
     }
 }
@@ -172,6 +243,7 @@ mod test {
     fn drop_example() {
         let data = r#"
             {
+                "size": [1, 1, 1],
                 "sites": [
                     {"kind": "Fe", "position": [0, 0, 0]}
                 ],
@@ -189,6 +261,7 @@ mod test {
     fn drop_example_actually_dropping() {
         let data = r#"
             {
+                "size": [1, 1, 1],
                 "sites": [
                     {"kind": "Fe", "position": [0, 0, 0]}
                 ],
@@ -206,6 +279,7 @@ mod test {
     fn single_lattice_expansion_1d() {
         let data = r#"
             {
+                "size": [1, 1, 1],
                 "sites": [
                     {"kind": "Fe", "position": [0, 0, 0]}
                 ],
@@ -216,5 +290,73 @@ mod test {
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 2);
         assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn double_lattice_expansion_1d() {
+        let data = r#"
+            {
+                "size": [1, 1, 1],
+                "sites": [
+                    {"kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": []
+            }
+        "#;
+        let lattice: Lattice = data.parse().unwrap();
+        let lattice = lattice.expand_along(Axis::X, 2);
+        let output = lattice.expand_along(Axis::X, 2);
+        assert_eq!(output.sites.len(), 4);
+        assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
+        assert!((output.sites[2].position.0 - 2.0).abs() < 1e-10);
+        assert!((output.sites[3].position.0 - 3.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn single_lattice_expansion_1d_vertices() {
+        let data = r#"
+            {
+                "size": [1, 1, 1],
+                "sites": [
+                    {"kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 0, "delta": [1, 0, 0]}
+                ]
+            }
+        "#;
+        let lattice: Lattice = data.parse().unwrap();
+        let output = lattice.expand_along(Axis::X, 2);
+        assert_eq!(output.vertices.len(), 2);
+        assert_eq!(output.vertices[0].source, 0);
+        assert_eq!(output.vertices[0].target, 1);
+        assert_eq!(output.vertices[0].delta.0, 0);
+        assert_eq!(output.vertices[1].source, 1);
+        assert_eq!(output.vertices[1].target, 0);
+        assert_eq!(output.vertices[1].delta.0, 1);
+    }
+
+    #[test]
+    fn single_lattice_expansion_1d_negative_vertices() {
+        let data = r#"
+            {
+                "size": [1, 1, 1],
+                "sites": [
+                    {"kind": "Fe", "position": [0, 0, 0]}
+                ],
+                "vertices": [
+                    {"source": 0, "target": 0, "delta": [-1, 0, 0]}
+                ]
+            }
+        "#;
+        let lattice: Lattice = data.parse().unwrap();
+        let output = lattice.expand_along(Axis::X, 2);
+        assert_eq!(output.vertices.len(), 2);
+        assert_eq!(output.vertices[0].source, 0);
+        assert_eq!(output.vertices[0].target, 1);
+        assert_eq!(output.vertices[0].delta.0, -1);
+        assert_eq!(output.vertices[1].source, 1);
+        assert_eq!(output.vertices[1].target, 0);
+        assert_eq!(output.vertices[1].delta.0, 0);
     }
 }

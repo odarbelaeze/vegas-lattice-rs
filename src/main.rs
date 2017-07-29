@@ -3,7 +3,6 @@ extern crate serde_json;
 extern crate vegas_lattice;
 
 use std::error::Error;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read};
 
@@ -73,22 +72,18 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn axis_map<'a>() -> HashMap<&'a str, Axis> {
-    let mut map = HashMap::new();
-    map.insert("--x", Axis::X);
-    map.insert("--y", Axis::Y);
-    map.insert("--z", Axis::Z);
-    return map;
+fn axis_map<'a>() -> Vec<(&'a str, Axis)> {
+    vec![("--x", Axis::X), ("--y", Axis::Y), ("--z", Axis::Z)]
 }
 
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
     let map = axis_map();
     let mut lattice = read(args.get_str("<input>"))?;
-    for (flag, axis) in &map {
+    for (flag, axis) in map.into_iter() {
         let string_value = args.get_str(flag);
         if !string_value.is_empty() {
             let size: usize = string_value.parse()?;
-            lattice = lattice.expand_along(*axis, size);
+            lattice = lattice.expand_along(axis, size);
         }
     }
     write(lattice, args.get_bool("--compress"));
