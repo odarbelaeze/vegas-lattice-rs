@@ -9,7 +9,7 @@ use std::io::{self, Read};
 use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
-use image::GenericImage;
+use image::{GenericImage, Pixel};
 use vegas_lattice::{Axis, Lattice};
 
 
@@ -130,6 +130,13 @@ fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
 
     // The color method returns the image's ColorType
     println!("{:?}", img.color());
+
+    // First pixel
+    println!("{:?}", img.get_pixel(0, 0));
+
+    for (i, j, pixel) in img.pixels() {
+        println!("{:?}", pixel.channels()[3]);
+    }
 
     Ok(())
 }
