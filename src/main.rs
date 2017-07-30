@@ -64,31 +64,33 @@ fn compress(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
+fn axis_map<'a>(prefix: Option<String>) -> Vec<(String, Axis)> {
+    let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
+    match prefix {
+        Some(p) => axes.into_iter().map(|(k, i)| (format!("{}{}", p, k), i)).collect(),
+        None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
+    }
+}
+
+
 fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
-    if args.get_bool("-x") {
-        lattice = lattice.drop(Axis::X);
-    }
-    if args.get_bool("-y") {
-        lattice = lattice.drop(Axis::Y);
-    }
-    if args.get_bool("-z") {
-        lattice = lattice.drop(Axis::Z);
+    for (key, axis) in axis_map(Some("-".to_string())) {
+        if args.get_bool(&key) {
+            lattice = lattice.drop(axis);
+        }
     }
     write(lattice);
     Ok(())
 }
 
 
-fn axis_map<'a>() -> Vec<(&'a str, Axis)> {
-    vec![("--x", Axis::X), ("--y", Axis::Y), ("--z", Axis::Z)]
-}
 
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
-    let map = axis_map();
+    let map = axis_map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
     for (flag, axis) in map.into_iter() {
-        let string_value = args.get_str(flag);
+        let string_value = args.get_str(&flag);
         if !string_value.is_empty() {
             let size: usize = string_value.parse()?;
             lattice = lattice.expand_along(axis, size);
