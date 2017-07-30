@@ -14,14 +14,14 @@ const USAGE: &'static str = "
 Vegas lattice.
 
 Usage:
-    vegas-lattice check [--compress] [<input>]
-    vegas-lattice drop [-x -y -z] [--compress] [<input>]
-    vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [--compress] [<input>]
+    vegas-lattice check [<input>]
+    vegas-lattice compress [<input>]
+    vegas-lattice drop [-x -y -z] [<input>]
+    vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
 Options:
-    -c --compress   Compress the output
     -h --help       Show this message.
     --version       Show version and exit.
 ";
@@ -40,53 +40,63 @@ fn read(input: &str) -> Result<Lattice, Box<Error>> {
 }
 
 
-fn write(lattice: Lattice, compress: bool) {
-    if compress {
-        println!("{}", serde_json::to_string(&lattice).unwrap());
-    } else {
-        println!("{}", serde_json::to_string_pretty(&lattice).unwrap());
-    }
+fn write_compressed(lattice: Lattice) {
+    println!("{}", serde_json::to_string(&lattice).unwrap());
+}
+
+
+fn write(lattice: Lattice) {
+    println!("{}", serde_json::to_string_pretty(&lattice).unwrap());
 }
 
 
 fn check(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
-    write(lattice, args.get_bool("--compress"));
+    write(lattice);
     Ok(())
+}
+
+
+fn compress(args: ArgvMap) -> Result<(), Box<Error>> {
+    let lattice = read(args.get_str("<input>"))?;
+    write_compressed(lattice);
+    Ok(())
+}
+
+
+fn axis_map<'a>(prefix: Option<String>) -> Vec<(String, Axis)> {
+    let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
+    match prefix {
+        Some(p) => axes.into_iter().map(|(k, i)| (format!("{}{}", p, k), i)).collect(),
+        None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
+    }
 }
 
 
 fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
-    if args.get_bool("-x") {
-        lattice = lattice.drop(Axis::X);
+    for (key, axis) in axis_map(Some("-".to_string())) {
+        if args.get_bool(&key) {
+            lattice = lattice.drop(axis);
+        }
     }
-    if args.get_bool("-y") {
-        lattice = lattice.drop(Axis::Y);
-    }
-    if args.get_bool("-z") {
-        lattice = lattice.drop(Axis::Z);
-    }
-    write(lattice, args.get_bool("--compress"));
+    write(lattice);
     Ok(())
 }
 
 
-fn axis_map<'a>() -> Vec<(&'a str, Axis)> {
-    vec![("--x", Axis::X), ("--y", Axis::Y), ("--z", Axis::Z)]
-}
 
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
-    let map = axis_map();
+    let map = axis_map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
     for (flag, axis) in map.into_iter() {
-        let string_value = args.get_str(flag);
+        let string_value = args.get_str(&flag);
         if !string_value.is_empty() {
             let size: usize = string_value.parse()?;
             lattice = lattice.expand_along(axis, size);
         }
     }
-    write(lattice, args.get_bool("--compress"));
+    write(lattice);
     Ok(())
 }
 
@@ -109,6 +119,8 @@ fn main() {
 
     if args.get_bool("check") {
         check_error(check(args));
+    } else if args.get_bool("compress") {
+        check_error(compress(args));
     } else if args.get_bool("drop") {
         check_error(drop(args));
     } else if args.get_bool("expand") {
