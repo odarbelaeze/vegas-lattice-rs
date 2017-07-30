@@ -1,6 +1,7 @@
 {
+    "size": [1, 1, 1],
     "sites": [
-        {"id": 0, "kind": "Fe", "position": [0, 0, 0]}
+        {"kind": "Fe", "position": [0, 0, 0]}
     ],
     "vertices": [
         {"source": 0, "target": 0, "delta": [1, 0, 0]},
