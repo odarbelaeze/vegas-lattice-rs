@@ -50,3 +50,21 @@ impl Vertex {
         vertex
     }
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::Vertex;
+
+    #[test]
+    fn vertex_will_take_optional_tags() {
+        let data = r#"
+            {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+        "#;
+        let site_result: Result<Vertex, _> = data.parse();
+        assert!(site_result.is_ok());
+        assert_eq!(site_result.unwrap().tags,
+                   Some(vec!["core".to_string(), "inner".to_string()]));
+    }
+
+}
