@@ -1,12 +1,15 @@
 extern crate docopt;
+extern crate image;
 extern crate serde_json;
 extern crate vegas_lattice;
 
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, Read};
+use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
+use image::GenericImage;
 use vegas_lattice::{Axis, Lattice};
 
 
@@ -18,6 +21,7 @@ Usage:
     vegas-lattice compress [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
+    vegas-lattice mask (--xy | --yz | --xz) <mask> [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
@@ -50,6 +54,29 @@ fn write(lattice: Lattice) {
 }
 
 
+fn axis_map<'a>(prefix: Option<String>) -> Vec<(String, Axis)> {
+    let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
+    match prefix {
+        Some(p) => axes.into_iter().map(|(k, i)| (format!("{}{}", p, k), i)).collect(),
+        None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
+    }
+}
+
+
+fn check_error(res: Result<(), Box<Error>>) {
+    match res {
+        Err(e) => {
+            eprintln!("{}", e);
+            std::process::exit(1);
+        },
+        _ => {},
+    }
+}
+
+
+// Commands over here
+
+
 fn check(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
     write(lattice);
@@ -64,15 +91,6 @@ fn compress(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn axis_map<'a>(prefix: Option<String>) -> Vec<(String, Axis)> {
-    let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
-    match prefix {
-        Some(p) => axes.into_iter().map(|(k, i)| (format!("{}{}", p, k), i)).collect(),
-        None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
-    }
-}
-
-
 fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
     for (key, axis) in axis_map(Some("-".to_string())) {
@@ -83,7 +101,6 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     write(lattice);
     Ok(())
 }
-
 
 
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
@@ -101,14 +118,20 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn check_error(res: Result<(), Box<Error>>) {
-    match res {
-        Err(e) => {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        },
-        _ => {},
-    }
+fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
+    // Use the open function to load an image from a Path.
+    // ```open``` returns a dynamic image.
+    let img = image::open(&Path::new(args.get_str("<mask>")))?;
+
+    println!("Work in progress!");
+
+    // The dimensions method returns the images width and height
+    println!("dimensions {:?}", img.dimensions());
+
+    // The color method returns the image's ColorType
+    println!("{:?}", img.color());
+
+    Ok(())
 }
 
 
@@ -125,6 +148,8 @@ fn main() {
         check_error(drop(args));
     } else if args.get_bool("expand") {
         check_error(expand(args));
+    } else if args.get_bool("mask") {
+        check_error(mask(args));
     } else {
         println!("{:?}", args);
     }
