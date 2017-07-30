@@ -4,95 +4,21 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
+mod site;
+mod util;
+mod vertex;
+
 use std::error::Error as StdError;
 use std::fmt;
 
 use itertools::Itertools;
 use serde_json::Error as SerdeError;
 
-
-fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
-    if num < 0 {
-        (modulus as i32 + num % modulus as i32, num / modulus as i32 - 1)
-    } else {
-        (num % modulus as i32, num / modulus as i32)
-    }
-}
+use site::Site;
+use vertex::Vertex;
+pub use util::Axis;
 
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Site {
-    kind: String,
-    position: (f64, f64, f64),
-    tags: Option<Vec<String>>,
-}
-
-
-impl std::str::FromStr for Site {
-    type Err = SerdeError;
-    fn from_str(source: &str) -> Result<Site, Self::Err> {
-        serde_json::from_str(source)
-    }
-}
-
-
-impl Site {
-    pub fn move_along(&self, axis: Axis, distance: f64) -> Self {
-        let mut site = self.clone();
-        match axis {
-            Axis::X => site.position.0 += distance,
-            Axis::Y => site.position.1 += distance,
-            Axis::Z => site.position.2 += distance,
-        };
-        site
-    }
-}
-
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Vertex {
-    source: usize,
-    target: usize,
-    delta: (i32, i32, i32),
-    tags: Option<Vec<String>>,
-}
-
-
-impl std::str::FromStr for Vertex {
-    type Err = SerdeError;
-    fn from_str(source: &str) -> Result<Vertex, Self::Err> {
-        serde_json::from_str(source)
-    }
-}
-
-
-impl Vertex {
-    fn delta_along(&self, axis: Axis) -> i32 {
-        match axis {
-            Axis::X => self.delta.0,
-            Axis::Y => self.delta.1,
-            Axis::Z => self.delta.2,
-        }
-    }
-
-    fn move_along(&self, axis: Axis, index: usize, nsites: usize, limit: usize) -> Self {
-        let mut vertex = self.clone();
-        let distance = index * nsites;
-        let new_nsites = limit * nsites;
-        vertex.source += distance;
-        vertex.target += distance;
-        let delta = vertex.delta_along(axis);
-        let target = vertex.target as i32 + delta * nsites as i32;
-        let (target, delta) = python_mod(target, new_nsites);
-        vertex.target = target as usize;
-        match axis {
-            Axis::X => vertex.delta.0 = delta,
-            Axis::Y => vertex.delta.1 = delta,
-            Axis::Z => vertex.delta.2 = delta,
-        };
-        vertex
-    }
-}
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -130,14 +56,6 @@ impl StdError for LatticeError {
             LatticeError::NegativeSize => "A negative size value is hard to grasp.",
         }
     }
-}
-
-
-#[derive(Debug, Clone, Copy)]
-pub enum Axis {
-    X,
-    Y,
-    Z,
 }
 
 
@@ -214,19 +132,7 @@ impl std::str::FromStr for Lattice {
 
 #[cfg(test)]
 mod test {
-    use super::{Site, Vertex, Lattice, Axis};
-
-    #[test]
-    fn site_will_take_optional_tags() {
-        let data = r#"
-            {"kind": "Fe", "position": [0, 0, 0], "tags": ["core", "inner"]}
-        "#;
-        let site_result: Result<Site, _> = data.parse();
-        assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags,
-                   Some(vec!["core".to_string(), "inner".to_string()]));
-    }
-
+    use super::{Vertex, Lattice, Axis};
 
     #[test]
     fn vertex_will_take_optional_tags() {

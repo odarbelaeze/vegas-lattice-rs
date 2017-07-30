@@ -2,18 +2,9 @@
 
 extern crate vegas_lattice;
 
-use vegas_lattice::{Site, Lattice};
-use std::str::FromStr;
+use vegas_lattice::Lattice;
 
 
-#[test]
-fn vertex_site_can_be_read_from_str() {
-    let data = r#"
-        {"kind": "Fe", "position": [0, 0, 0]}
-    "#;
-    let site_result = Site::from_str(data);
-    assert!(site_result.is_ok());
-}
 
 #[test]
 fn lattice_example() {

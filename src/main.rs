@@ -54,15 +54,6 @@ fn write(lattice: Lattice) {
 }
 
 
-fn axis_map<'a>(prefix: Option<String>) -> Vec<(String, Axis)> {
-    let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
-    match prefix {
-        Some(p) => axes.into_iter().map(|(k, i)| (format!("{}{}", p, k), i)).collect(),
-        None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
-    }
-}
-
-
 fn check_error(res: Result<(), Box<Error>>) {
     match res {
         Err(e) => {
@@ -93,7 +84,7 @@ fn compress(args: ArgvMap) -> Result<(), Box<Error>> {
 
 fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
-    for (key, axis) in axis_map(Some("-".to_string())) {
+    for (key, axis) in Axis::map(Some("-".to_string())) {
         if args.get_bool(&key) {
             lattice = lattice.drop(axis);
         }
@@ -104,7 +95,7 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
 
 
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
-    let map = axis_map(Some("--".to_string()));
+    let map = Axis::map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
     for (flag, axis) in map.into_iter() {
         let string_value = args.get_str(&flag);
@@ -134,7 +125,7 @@ fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
     // First pixel
     println!("{:?}", img.get_pixel(0, 0));
 
-    for (i, j, pixel) in img.pixels() {
+    for (_, _, pixel) in img.pixels() {
         println!("{:?}", pixel.channels()[3]);
     }
 
