@@ -27,9 +27,16 @@ impl fmt::Display for LatticeError {
 impl StdError for LatticeError {
     fn description(&self) -> &str {
         match *self {
-            LatticeError::JsonParseError(_) => "Failed to parse JSON.",
-            LatticeError::InconsistentVertices => "The vertices are inconsistent.",
-            LatticeError::NegativeSize => "A negative size value is hard to grasp.",
+            LatticeError::JsonParseError(_) => "failed to parse JSON",
+            LatticeError::InconsistentVertices => "the vertices are inconsistent",
+            LatticeError::NegativeSize => "a negative size value is hard to grasp",
+        }
+    }
+
+    fn cause(&self) -> Option<&StdError> {
+        match self {
+            &LatticeError::JsonParseError(ref err) => Some(err),
+            _ => None,
         }
     }
 }

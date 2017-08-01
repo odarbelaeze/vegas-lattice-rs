@@ -57,7 +57,11 @@ fn write(lattice: Lattice) {
 fn check_error(res: Result<(), Box<Error>>) {
     match res {
         Err(e) => {
-            eprintln!("{}", e);
+            eprintln!("Error: {}", e.description());
+            match e.cause() {
+                Some(cause) => eprintln!("Cause: {}", cause),
+                _ => ()
+            };
             std::process::exit(1);
         },
         _ => {},
