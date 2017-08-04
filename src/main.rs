@@ -1,13 +1,15 @@
 extern crate docopt;
+extern crate image;
 extern crate serde_json;
 extern crate vegas_lattice;
 
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, Read};
+use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
-use vegas_lattice::{Axis, Lattice};
+use vegas_lattice::{Axis, Lattice, Mask};
 
 
 const USAGE: &'static str = "
@@ -18,10 +20,13 @@ Usage:
     vegas-lattice compress [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
+    vegas-lattice mask [--ppu=<ppu>] <mask> [<input>]
+    vegas-lattice into xyz [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
 Options:
+    -p=<ppu> --ppu=<ppu>        Pixels per unit [default: 10].
     -h --help       Show this message.
     --version       Show version and exit.
 ";
@@ -50,6 +55,24 @@ fn write(lattice: Lattice) {
 }
 
 
+fn check_error(res: Result<(), Box<Error>>) {
+    match res {
+        Err(e) => {
+            eprintln!("Error: {}", e.description());
+            match e.cause() {
+                Some(cause) => eprintln!("Cause: {}", cause),
+                _ => ()
+            };
+            std::process::exit(1);
+        },
+        _ => {},
+    }
+}
+
+
+// Commands over here
+
+
 fn check(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
     write(lattice);
@@ -64,18 +87,9 @@ fn compress(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn axis_map<'a>(prefix: Option<String>) -> Vec<(String, Axis)> {
-    let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
-    match prefix {
-        Some(p) => axes.into_iter().map(|(k, i)| (format!("{}{}", p, k), i)).collect(),
-        None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
-    }
-}
-
-
 fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
-    for (key, axis) in axis_map(Some("-".to_string())) {
+    for (key, axis) in Axis::map(Some("-".to_string())) {
         if args.get_bool(&key) {
             lattice = lattice.drop(axis);
         }
@@ -85,9 +99,8 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
-    let map = axis_map(Some("--".to_string()));
+    let map = Axis::map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
     for (flag, axis) in map.into_iter() {
         let string_value = args.get_str(&flag);
@@ -101,14 +114,26 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn check_error(res: Result<(), Box<Error>>) {
-    match res {
-        Err(e) => {
-            eprintln!("{}", e);
-            std::process::exit(1);
-        },
-        _ => {},
+fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
+    let path = args.get_str("<mask>");
+    let ppu: f64 = args.get_str("--ppu").parse()?;
+    let mask = Mask::new(&Path::new(path), ppu)?;
+    let mut lattice = read(args.get_str("<input>"))?;
+    lattice = lattice.apply_mask(mask);
+    write(lattice);
+    Ok(())
+}
+
+
+fn into(args: ArgvMap) -> Result<(), Box<Error>> {
+    if args.get_bool("xyz") {
+        let lattice = read(args.get_str("<input>"))?;
+        for site in lattice.sites().iter() {
+            let (x, y, z) = site.position;
+            println!("{} {} {} {}", x, y, z, site.kind)
+        }
     }
+    Ok(())
 }
 
 
@@ -125,6 +150,10 @@ fn main() {
         check_error(drop(args));
     } else if args.get_bool("expand") {
         check_error(expand(args));
+    } else if args.get_bool("mask") {
+        check_error(mask(args));
+    } else if args.get_bool("into") {
+        check_error(into(args));
     } else {
         println!("{:?}", args);
     }
