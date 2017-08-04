@@ -9,8 +9,7 @@ use std::io::{self, Read};
 use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
-use image::{GenericImage, Pixel};
-use vegas_lattice::{Axis, Lattice};
+use vegas_lattice::{Axis, Lattice, Mask};
 
 
 const USAGE: &'static str = "
@@ -114,25 +113,10 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
 
 
 fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
-    // Use the open function to load an image from a Path.
-    // ```open``` returns a dynamic image.
-    let img = image::open(&Path::new(args.get_str("<mask>")))?;
-
-    println!("Work in progress!");
-
-    // The dimensions method returns the images width and height
-    println!("dimensions {:?}", img.dimensions());
-
-    // The color method returns the image's ColorType
-    println!("{:?}", img.color());
-
-    // First pixel
-    println!("{:?}", img.get_pixel(0, 0));
-
-    for (_, _, pixel) in img.pixels() {
-        println!("{:?}", pixel.channels()[3]);
-    }
-
+    let mask = Mask::new(&Path::new(args.get_str("<mask>")), 100.0)?;
+    let mut lattice = read(args.get_str("<input>"))?;
+    lattice = lattice.apply_mask(mask);
+    write(lattice);
     Ok(())
 }
 

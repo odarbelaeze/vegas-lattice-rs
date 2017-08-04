@@ -1,8 +1,7 @@
 use std::fmt;
+use std::error::Error as StdError;
 
 use serde_json::Error as SerdeError;
-
-use std::error::Error as StdError;
 
 
 #[derive(Debug)]

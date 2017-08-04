@@ -4,10 +4,11 @@ use std::str::FromStr;
 
 use itertools::Itertools;
 
-use super::util::Axis;
-use super::site::Site;
-use super::vertex::Vertex;
 use super::error::LatticeError;
+use super::mask::Mask;
+use super::site::Site;
+use super::util::Axis;
+use super::vertex::Vertex;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -74,6 +75,29 @@ impl Lattice {
             Axis::Z => self.size.2 *= amount as f64,
         }
 
+        self
+    }
+
+    pub fn apply_mask(mut self, mut mask: Mask) -> Self {
+        let site_mask: Vec<_> = self.sites
+            .iter()
+            .map(|s| mask.keep(s.position.0, s.position.1))
+            .collect();
+        let mut counter = 0;
+        let new_indices: Vec<_> = (0..self.sites.len())
+            .map(|i| if site_mask[i] { counter += 1; counter - 1 } else { i })
+            .collect();
+        self.sites = self.sites
+            .into_iter()
+            .enumerate()
+            .filter(|&(i, ref _s)| site_mask[i])
+            .map(|(_i, s)| s)
+            .collect();
+        self.vertices = self.vertices
+            .into_iter()
+            .filter(|v| site_mask[v.source] && site_mask[v.target])
+            .map(|v| v.reindex(&new_indices))
+            .collect();
         self
     }
 }

@@ -49,6 +49,12 @@ impl Vertex {
         };
         vertex
     }
+
+    pub fn reindex(mut self, index: &[usize]) -> Self {
+        self.source = index[self.source];
+        self.target = index[self.target];
+        self
+    }
 }
 
 
@@ -61,10 +67,20 @@ mod test {
         let data = r#"
             {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
         "#;
-        let site_result: Result<Vertex, _> = data.parse();
-        assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags,
+        let vertex_result: Result<Vertex, _> = data.parse();
+        assert!(vertex_result.is_ok());
+        assert_eq!(vertex_result.unwrap().tags,
                    Some(vec!["core".to_string(), "inner".to_string()]));
     }
 
+    #[test]
+    fn reindexing_kinda_works() {
+        let data = r#"
+            {"source": 0, "target": 1, "delta": [0, 0, 1], "tags": ["core", "inner"]}
+        "#;
+        let vertex: Vertex = data.parse().unwrap();
+        let vertex = vertex.reindex(&vec![1, 0]);
+        assert_eq!(vertex.source, 1);
+        assert_eq!(vertex.target, 0);
+    }
 }
