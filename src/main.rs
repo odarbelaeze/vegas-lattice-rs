@@ -21,6 +21,7 @@ Usage:
     vegas-lattice drop [-x -y -z] [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
     vegas-lattice mask (--xy | --yz | --xz) <mask> [<input>]
+    vegas-lattice into xyz [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
@@ -121,6 +122,18 @@ fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
+fn into(args: ArgvMap) -> Result<(), Box<Error>> {
+    if args.get_bool("xyz") {
+        let lattice = read(args.get_str("<input>"))?;
+        for site in lattice.sites().iter() {
+            let (x, y, z) = site.position;
+            println!("{} {} {} {}", x, y, z, site.kind)
+        }
+    }
+    Ok(())
+}
+
+
 fn main() {
     let args = Docopt::new(USAGE)
         .and_then(|doc| doc.version(Some("0.0.1".to_string())).parse())
@@ -136,6 +149,8 @@ fn main() {
         check_error(expand(args));
     } else if args.get_bool("mask") {
         check_error(mask(args));
+    } else if args.get_bool("into") {
+        check_error(into(args));
     } else {
         println!("{:?}", args);
     }

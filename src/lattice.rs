@@ -20,6 +20,19 @@ pub struct Lattice {
 
 
 impl Lattice {
+
+    pub fn size(&self) -> (f64, f64, f64) {
+        self.size
+    }
+
+    pub fn sites<'a> (&'a self) -> &'a [Site] {
+        &self.sites
+    }
+
+    pub fn vertices<'a> (&'a self) -> &'a [Vertex] {
+        &self.vertices
+    }
+
     fn are_vertices_consistent(&self) -> bool {
         self.vertices
             .iter()
