@@ -26,7 +26,7 @@ Usage:
     vegas-lattice --version
 
 Options:
-    --ppu=<ppu>     Pixels per unit [default: 10].
+    -p=<ppu> --ppu=<ppu>        Pixels per unit [default: 10].
     -h --help       Show this message.
     --version       Show version and exit.
 ";
