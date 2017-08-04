@@ -20,12 +20,13 @@ Usage:
     vegas-lattice compress [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
-    vegas-lattice mask (--xy | --yz | --xz) <mask> [<input>]
+    vegas-lattice mask [--ppu=<ppu>] <mask> [<input>]
     vegas-lattice into xyz [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
 Options:
+    -p=<ppu> --ppu=<ppu>        Pixels per unit [default: 10].
     -h --help       Show this message.
     --version       Show version and exit.
 ";
@@ -114,7 +115,9 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
 
 
 fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
-    let mask = Mask::new(&Path::new(args.get_str("<mask>")), 100.0)?;
+    let path = args.get_str("<mask>");
+    let ppu: f64 = args.get_str("--ppu").parse()?;
+    let mask = Mask::new(&Path::new(path), ppu)?;
     let mut lattice = read(args.get_str("<input>"))?;
     lattice = lattice.apply_mask(mask);
     write(lattice);
