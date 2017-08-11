@@ -5,3 +5,5 @@
 
 A little tool/library to build lattices and samples out of patterns
 written in rust.
+
+Take a look at the [wiki](https://github.com/pcm-ca/vegas-lattice-rs/wiki).
