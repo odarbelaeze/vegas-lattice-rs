@@ -15,12 +15,12 @@ struct Person {
 
 #[derive(Serialize, Deserialize)]
 struct People {
-    people: Vec<Person>
+    people: Vec<Person>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Optionals {
-    option: Option<i64>
+    option: Option<i64>,
 }
 
 fn typed_example(data: &str) -> Result<(), Error> {

@@ -5,7 +5,7 @@ extern crate vegas_lattice;
 
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{stdin, Read};
 use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
@@ -38,7 +38,7 @@ fn read(input: &str) -> Result<Lattice, Box<Error>> {
         let mut file = File::open(input)?;
         file.read_to_string(&mut data)?;
     } else {
-        io::stdin().read_to_string(&mut data)?;
+        stdin().read_to_string(&mut data)?;
     };
     let lattice: Lattice = data.parse()?;
     Ok(lattice)
