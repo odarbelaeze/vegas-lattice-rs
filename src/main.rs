@@ -1,5 +1,4 @@
 extern crate docopt;
-extern crate image;
 extern crate serde_json;
 extern crate vegas_lattice;
 
@@ -19,6 +18,7 @@ Usage:
     vegas-lattice check [<input>]
     vegas-lattice compress [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
+    vegas-lattice alloy <source> (<target> <ratio>)... [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
     vegas-lattice mask [--ppu=<ppu>] <mask> [<input>]
     vegas-lattice into xyz [<input>]
