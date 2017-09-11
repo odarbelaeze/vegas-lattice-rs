@@ -39,8 +39,8 @@ impl Lattice {
     fn are_vertices_consistent(&self) -> bool {
         self.vertices
             .iter()
-            .map(|vertex| vertex.source)
-            .chain(self.vertices.iter().map(|vertex| vertex.target))
+            .map(|vertex| vertex.source())
+            .chain(self.vertices.iter().map(|vertex| vertex.target()))
             .all(|id| id < self.sites.len())
     }
 
@@ -55,11 +55,10 @@ impl Lattice {
     }
 
     pub fn drop(mut self, axis: Axis) -> Self {
-        self.vertices = match axis {
-            Axis::X => self.vertices.into_iter().filter(|v| v.delta.0 == 0).collect(),
-            Axis::Y => self.vertices.into_iter().filter(|v| v.delta.1 == 0).collect(),
-            Axis::Z => self.vertices.into_iter().filter(|v| v.delta.2 == 0).collect(),
-        };
+        self.vertices = self.vertices
+            .into_iter()
+            .filter(|v| v.delta_along(axis) == 0)
+            .collect();
         self
     }
 
@@ -114,7 +113,7 @@ impl Lattice {
             .collect();
         self.vertices = self.vertices
             .into_iter()
-            .filter(|v| site_mask[v.source] && site_mask[v.target])
+            .filter(|v| site_mask[v.source()] && site_mask[v.target()])
             .map(|v| v.reindex(&new_indices))
             .collect();
         self

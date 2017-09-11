@@ -3,15 +3,15 @@ extern crate serde_json;
 use std::str::FromStr;
 
 use serde_json::Error as SerdeError;
-use super::util::{Axis, python_mod};
+use super::util::{Axis, Tagged, python_mod};
 
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {
-    pub source: usize,
-    pub target: usize,
-    pub delta: (i32, i32, i32),
-    pub tags: Option<Vec<String>>,
+    source: usize,
+    target: usize,
+    delta: (i32, i32, i32),
+    tags: Option<Vec<String>>,
 }
 
 
@@ -23,8 +23,27 @@ impl FromStr for Vertex {
 }
 
 
+impl Tagged for Vertex {
+    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
+        match self.tags {
+            Some(ref tags) => Some(&tags),
+            None => None
+        }
+    }
+}
+
+
 impl Vertex {
-    fn delta_along(&self, axis: Axis) -> i32 {
+
+    pub fn source(&self) -> usize {
+        self.source
+    }
+
+    pub fn target(&self) -> usize {
+        self.target
+    }
+
+    pub fn delta_along(&self, axis: Axis) -> i32 {
         match axis {
             Axis::X => self.delta.0,
             Axis::Y => self.delta.1,

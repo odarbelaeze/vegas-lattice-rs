@@ -22,6 +22,16 @@ impl FromStr for Site {
 }
 
 
+impl Tagged for Site {
+    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
+        match self.tags {
+            Some(ref tags) => Some(&tags),
+            None => None
+        }
+    }
+}
+
+
 impl Site {
     pub fn position(&self) -> (f64, f64, f64) {
         self.position
@@ -44,16 +54,6 @@ impl Site {
     pub fn with_kind(mut self, kind: String) -> Self {
         self.kind = kind;
         self
-    }
-}
-
-
-impl Tagged for Site {
-    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
-        match self.tags {
-            Some(ref tags) => Some(&tags),
-            None => None
-        }
     }
 }
 
