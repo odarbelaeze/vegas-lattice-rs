@@ -148,6 +148,7 @@ impl FromStr for Lattice {
 #[cfg(test)]
 mod test {
     use super::{Vertex, Lattice, Axis};
+    use util::Tagged;
 
     #[test]
     fn vertex_will_take_optional_tags() {
@@ -156,8 +157,8 @@ mod test {
         "#;
         let site_result: Result<Vertex, _> = data.parse();
         assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags,
-                   Some(vec!["core".to_string(), "inner".to_string()]));
+        assert_eq!(site_result.unwrap().tags(),
+                   Some(&vec!["core".to_string(), "inner".to_string()]));
     }
 
     #[test]
@@ -210,7 +211,7 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 2);
-        assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
+        assert!((output.sites[1].position().0 - 1.0).abs() < 1e-10);
     }
 
     #[test]
@@ -228,9 +229,9 @@ mod test {
         let lattice = lattice.expand_along(Axis::X, 2);
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 4);
-        assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
-        assert!((output.sites[2].position.0 - 2.0).abs() < 1e-10);
-        assert!((output.sites[3].position.0 - 3.0).abs() < 1e-10);
+        assert!((output.sites[1].position().0 - 1.0).abs() < 1e-10);
+        assert!((output.sites[2].position().0 - 2.0).abs() < 1e-10);
+        assert!((output.sites[3].position().0 - 3.0).abs() < 1e-10);
     }
 
     #[test]
@@ -249,12 +250,12 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.vertices.len(), 2);
-        assert_eq!(output.vertices[0].source, 0);
-        assert_eq!(output.vertices[0].target, 1);
-        assert_eq!(output.vertices[0].delta.0, 0);
-        assert_eq!(output.vertices[1].source, 1);
-        assert_eq!(output.vertices[1].target, 0);
-        assert_eq!(output.vertices[1].delta.0, 1);
+        assert_eq!(output.vertices[0].source(), 0);
+        assert_eq!(output.vertices[0].target(), 1);
+        assert_eq!(output.vertices[0].delta_along(Axis::X), 0);
+        assert_eq!(output.vertices[1].source(), 1);
+        assert_eq!(output.vertices[1].target(), 0);
+        assert_eq!(output.vertices[1].delta_along(Axis::X), 1);
     }
 
     #[test]
@@ -273,11 +274,11 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.vertices.len(), 2);
-        assert_eq!(output.vertices[0].source, 0);
-        assert_eq!(output.vertices[0].target, 1);
-        assert_eq!(output.vertices[0].delta.0, -1);
-        assert_eq!(output.vertices[1].source, 1);
-        assert_eq!(output.vertices[1].target, 0);
-        assert_eq!(output.vertices[1].delta.0, 0);
+        assert_eq!(output.vertices[0].source(), 0);
+        assert_eq!(output.vertices[0].target(), 1);
+        assert_eq!(output.vertices[0].delta_along(Axis::X), -1);
+        assert_eq!(output.vertices[1].source(), 1);
+        assert_eq!(output.vertices[1].target(), 0);
+        assert_eq!(output.vertices[1].delta_along(Axis::X), 0);
     }
 }
