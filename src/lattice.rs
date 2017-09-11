@@ -3,12 +3,15 @@ extern crate serde_json;
 use std::str::FromStr;
 
 use itertools::Itertools;
+use rand::distributions::{WeightedChoice, IndependentSample};
+use rand::thread_rng;
 
 use super::error::LatticeError;
 use super::mask::Mask;
 use super::site::Site;
 use super::util::Axis;
 use super::vertex::Vertex;
+use super::alloy::Alloy;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -36,8 +39,8 @@ impl Lattice {
     fn are_vertices_consistent(&self) -> bool {
         self.vertices
             .iter()
-            .map(|vertex| vertex.source)
-            .chain(self.vertices.iter().map(|vertex| vertex.target))
+            .map(|vertex| vertex.source())
+            .chain(self.vertices.iter().map(|vertex| vertex.target()))
             .all(|id| id < self.sites.len())
     }
 
@@ -52,11 +55,10 @@ impl Lattice {
     }
 
     pub fn drop(mut self, axis: Axis) -> Self {
-        self.vertices = match axis {
-            Axis::X => self.vertices.into_iter().filter(|v| v.delta.0 == 0).collect(),
-            Axis::Y => self.vertices.into_iter().filter(|v| v.delta.1 == 0).collect(),
-            Axis::Z => self.vertices.into_iter().filter(|v| v.delta.2 == 0).collect(),
-        };
+        self.vertices = self.vertices
+            .into_iter()
+            .filter(|v| v.delta_along(axis) == 0)
+            .collect();
         self
     }
 
@@ -94,7 +96,10 @@ impl Lattice {
     pub fn apply_mask(mut self, mut mask: Mask) -> Self {
         let site_mask: Vec<_> = self.sites
             .iter()
-            .map(|s| mask.keep(s.position.0, s.position.1))
+            .map(|s| {
+                let (x, y, _) = s.position();
+                mask.keep(x, y)
+            })
             .collect();
         let mut counter = 0;
         let new_indices: Vec<_> = (0..self.sites.len())
@@ -108,8 +113,21 @@ impl Lattice {
             .collect();
         self.vertices = self.vertices
             .into_iter()
-            .filter(|v| site_mask[v.source] && site_mask[v.target])
+            .filter(|v| site_mask[v.source()] && site_mask[v.target()])
             .map(|v| v.reindex(&new_indices))
+            .collect();
+        self
+    }
+
+    pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
+        let mut items = target.choices();
+        let mut rng = thread_rng();
+        let weigthed_choice = WeightedChoice::new(&mut items);
+        self.sites = self.sites
+            .into_iter()
+            .map(|site| if site.kind() != source { site } else {
+                site.with_kind(weigthed_choice.ind_sample(&mut rng))
+            })
             .collect();
         self
     }
@@ -130,6 +148,7 @@ impl FromStr for Lattice {
 #[cfg(test)]
 mod test {
     use super::{Vertex, Lattice, Axis};
+    use util::Tagged;
 
     #[test]
     fn vertex_will_take_optional_tags() {
@@ -138,8 +157,8 @@ mod test {
         "#;
         let site_result: Result<Vertex, _> = data.parse();
         assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags,
-                   Some(vec!["core".to_string(), "inner".to_string()]));
+        assert_eq!(site_result.unwrap().tags(),
+                   Some(&vec!["core".to_string(), "inner".to_string()]));
     }
 
     #[test]
@@ -192,7 +211,7 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 2);
-        assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
+        assert!((output.sites[1].position().0 - 1.0).abs() < 1e-10);
     }
 
     #[test]
@@ -210,9 +229,9 @@ mod test {
         let lattice = lattice.expand_along(Axis::X, 2);
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 4);
-        assert!((output.sites[1].position.0 - 1.0).abs() < 1e-10);
-        assert!((output.sites[2].position.0 - 2.0).abs() < 1e-10);
-        assert!((output.sites[3].position.0 - 3.0).abs() < 1e-10);
+        assert!((output.sites[1].position().0 - 1.0).abs() < 1e-10);
+        assert!((output.sites[2].position().0 - 2.0).abs() < 1e-10);
+        assert!((output.sites[3].position().0 - 3.0).abs() < 1e-10);
     }
 
     #[test]
@@ -231,12 +250,12 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.vertices.len(), 2);
-        assert_eq!(output.vertices[0].source, 0);
-        assert_eq!(output.vertices[0].target, 1);
-        assert_eq!(output.vertices[0].delta.0, 0);
-        assert_eq!(output.vertices[1].source, 1);
-        assert_eq!(output.vertices[1].target, 0);
-        assert_eq!(output.vertices[1].delta.0, 1);
+        assert_eq!(output.vertices[0].source(), 0);
+        assert_eq!(output.vertices[0].target(), 1);
+        assert_eq!(output.vertices[0].delta_along(Axis::X), 0);
+        assert_eq!(output.vertices[1].source(), 1);
+        assert_eq!(output.vertices[1].target(), 0);
+        assert_eq!(output.vertices[1].delta_along(Axis::X), 1);
     }
 
     #[test]
@@ -255,11 +274,11 @@ mod test {
         let lattice: Lattice = data.parse().unwrap();
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.vertices.len(), 2);
-        assert_eq!(output.vertices[0].source, 0);
-        assert_eq!(output.vertices[0].target, 1);
-        assert_eq!(output.vertices[0].delta.0, -1);
-        assert_eq!(output.vertices[1].source, 1);
-        assert_eq!(output.vertices[1].target, 0);
-        assert_eq!(output.vertices[1].delta.0, 0);
+        assert_eq!(output.vertices[0].source(), 0);
+        assert_eq!(output.vertices[0].target(), 1);
+        assert_eq!(output.vertices[0].delta_along(Axis::X), -1);
+        assert_eq!(output.vertices[1].source(), 1);
+        assert_eq!(output.vertices[1].target(), 0);
+        assert_eq!(output.vertices[1].delta_along(Axis::X), 0);
     }
 }

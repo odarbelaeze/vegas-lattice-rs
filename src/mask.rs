@@ -1,26 +1,25 @@
 //! Simpe tools for dealing with masks, and abstracts the requirement of
 //! image.
 
+extern crate image;
+
 
 use std::error::Error;
 use std::path::Path;
 
-use image::{self, DynamicImage, GenericImage, Pixel};
+use self::image::{DynamicImage, GenericImage, Pixel};
 use rand::{thread_rng, ThreadRng, Rng};
 
-/// Abstracts the concept of a mask
+
 pub struct Mask {
-    /// Points to a generic image to draw data from
     image: Box<DynamicImage>,
     /// Pixels per unit
     ppu: f64,
-    /// Random number generator
     rng: ThreadRng,
 }
 
 
 impl Mask {
-    // TODO This maybe a path
     pub fn new(path: &Path, ppu: f64) -> Result<Self, Box<Error>> {
         let img = image::open(path)?;
         Ok(Self {

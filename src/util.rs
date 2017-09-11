@@ -28,3 +28,15 @@ pub fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
         (num % modulus as i32, num / modulus as i32)
     }
 }
+
+
+
+pub trait Tagged {
+    fn tags(&self) -> Option<&Vec<String>>;
+    fn has_tag(&self, tag: String) -> bool {
+        match self.tags() {
+            None => false,
+            Some(ref tags) => tags.iter().any(|t| t == &tag)
+        }
+    }
+}
