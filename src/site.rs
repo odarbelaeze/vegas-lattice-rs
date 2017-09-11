@@ -3,14 +3,14 @@ extern crate serde_json;
 use std::str::FromStr;
 
 use serde_json::Error as SerdeError;
-use super::util::Axis;
+use super::util::{Axis, Tagged};
 
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
-    pub kind: String,
-    pub position: (f64, f64, f64),
-    pub tags: Option<Vec<String>>,
+    kind: String,
+    position: (f64, f64, f64),
+    tags: Option<Vec<String>>,
 }
 
 
@@ -21,7 +21,16 @@ impl FromStr for Site {
     }
 }
 
+
 impl Site {
+    pub fn position(&self) -> (f64, f64, f64) {
+        self.position
+    }
+
+    pub fn kind(&self) -> String {
+        self.kind.clone()
+    }
+
     pub fn move_along(&self, axis: Axis, distance: f64) -> Self {
         let mut site = self.clone();
         match axis {
@@ -35,6 +44,16 @@ impl Site {
     pub fn with_kind(mut self, kind: String) -> Self {
         self.kind = kind;
         self
+    }
+}
+
+
+impl Tagged for Site {
+    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
+        match self.tags {
+            Some(ref tags) => Some(&tags),
+            None => None
+        }
     }
 }
 

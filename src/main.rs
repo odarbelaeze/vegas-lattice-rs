@@ -144,8 +144,8 @@ fn into(args: ArgvMap) -> Result<(), Box<Error>> {
     if args.get_bool("xyz") {
         let lattice = read(args.get_str("<input>"))?;
         for site in lattice.sites().iter() {
-            let (x, y, z) = site.position;
-            println!("{} {} {} {}", x, y, z, site.kind)
+            let (x, y, z) = site.position();
+            println!("{} {} {} {}", x, y, z, site.kind())
         }
     }
     Ok(())

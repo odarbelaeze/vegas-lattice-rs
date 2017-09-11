@@ -97,7 +97,10 @@ impl Lattice {
     pub fn apply_mask(mut self, mut mask: Mask) -> Self {
         let site_mask: Vec<_> = self.sites
             .iter()
-            .map(|s| mask.keep(s.position.0, s.position.1))
+            .map(|s| {
+                let (x, y, _) = s.position();
+                mask.keep(x, y)
+            })
             .collect();
         let mut counter = 0;
         let new_indices: Vec<_> = (0..self.sites.len())
@@ -123,7 +126,7 @@ impl Lattice {
         let weigthed_choice = WeightedChoice::new(&mut items);
         self.sites = self.sites
             .into_iter()
-            .map(|site| if site.kind != source { site } else {
+            .map(|site| if site.kind() != source { site } else {
                 site.with_kind(weigthed_choice.ind_sample(&mut rng))
             })
             .collect();
