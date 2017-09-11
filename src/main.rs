@@ -8,7 +8,7 @@ use std::io::{stdin, Read};
 use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
-use vegas_lattice::{Axis, Lattice, Mask};
+use vegas_lattice::{Axis, Lattice, Mask, Alloy};
 
 
 const USAGE: &'static str = "
@@ -99,6 +99,21 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
+fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
+    let source = args.get_str("<source>");
+    let kinds = args.get_vec("<target>");
+    let ratios = args.get_vec("<ratio>")
+        .into_iter()
+        .map(|r| r.parse())
+        .collect::<Result<Vec<u32>, _>>()?;
+    let alloy = Alloy::new(kinds, ratios);
+    let mut lattice = read(args.get_str("<input>"))?;
+    lattice = lattice.alloy_sites(source, alloy);
+    write(lattice);
+    Ok(())
+}
+
+
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
     let map = Axis::map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
@@ -148,6 +163,8 @@ fn main() {
         check_error(compress(args));
     } else if args.get_bool("drop") {
         check_error(drop(args));
+    } else if args.get_bool("alloy") {
+        check_error(alloy(args));
     } else if args.get_bool("expand") {
         check_error(expand(args));
     } else if args.get_bool("mask") {

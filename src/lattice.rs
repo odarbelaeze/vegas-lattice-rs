@@ -3,12 +3,15 @@ extern crate serde_json;
 use std::str::FromStr;
 
 use itertools::Itertools;
+use rand::distributions::{WeightedChoice, IndependentSample};
+use rand::thread_rng;
 
 use super::error::LatticeError;
 use super::mask::Mask;
 use super::site::Site;
 use super::util::Axis;
 use super::vertex::Vertex;
+use super::alloy::Alloy;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -110,6 +113,19 @@ impl Lattice {
             .into_iter()
             .filter(|v| site_mask[v.source] && site_mask[v.target])
             .map(|v| v.reindex(&new_indices))
+            .collect();
+        self
+    }
+
+    pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
+        let mut items = target.choices();
+        let mut rng = thread_rng();
+        let weigthed_choice = WeightedChoice::new(&mut items);
+        self.sites = self.sites
+            .into_iter()
+            .map(|site| if site.kind != source { site } else {
+                site.with_kind(weigthed_choice.ind_sample(&mut rng))
+            })
             .collect();
         self
     }

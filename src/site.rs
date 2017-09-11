@@ -31,6 +31,11 @@ impl Site {
         };
         site
     }
+
+    pub fn with_kind(mut self, kind: String) -> Self {
+        self.kind = kind;
+        self
+    }
 }
 
 
