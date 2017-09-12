@@ -1,4 +1,23 @@
 language: rust
+sudo: false
+
 rust:
   - stable
   - beta
+
+before_deploy:
+  - cargo package
+
+deploy:
+  provider: releases
+  api-key:
+    secure: "NHQ+pHx+XHghzKwA8UL7vbNYeu43IPHWCMUpeD4hJ57iFvCfqDPQ++a1cOAdS0XlFFxvALR7S27MJhXzCd641X/+Ns5inL/IvPLjBzSBx8BjsDz1wgY9fLDdfuSsPndKJz4cNiRFxPELnnfWFTCQUhP8j+S3LID7qerC+ccYxnR+d2CnTFoiMUjXj+zeatuvP4faBT0TOQALSwsPlZEMDT//zl3FI1+k9HhwCSo1mM/EvvQQwe7i44BvKEdQvSYhIcO/2HAmDmMGmBZRi/Ft4LfLHSF+aJtBQKMIZn+saTX8awFD5iEnei679H4i8IAqm9Y+/ETwQKBPNcZ+3Jc8V3Lxa2YiWy/uq3xskRrYuyPLL/0j8dGlROtgUzthKxYtx9y5wC0QWSRL9r8VhcXWSbMv7IAC5AwNVET7nt+qtREoRWx3tJvsWeDkNgmn7nxcQrV5wF0XxpFOaNTtsMHCIXAomaPYLQg5TUiMkU7PWWnvU/PUyMukz4eRsvAWrPdO9ZsTkqj7c6R/ipjxhYAEHGpj2D4CuckacCf/KkvaWIkcIgMPLM9fuCWszNOAkVA+kciISwEmLI3bL2/kzyDULYMEsd+qJWpJZqvwMlV//q9eE6kS740qY6oBcKhGD1ptRMuajc+Cj3YDmFz5Ff05ec+VGoCg87jUlQoY+M8fiYI="
+  file: target/package/vegas-lattice-$TRAVIS_TAG.crate
+  skip_cleanup: true
+  on:
+    tags: true
+    branch: master
+    condition: "$TRAVIS_RUST_VERSION = stable"
+
+after_deploy:
+  - cargo publish --token "$CRATESIO_TOKEN"
