@@ -2,13 +2,27 @@
 name = "vegas-lattice"
 version = "0.1.0"
 authors = ["Oscar David Arbeláez Echeverri <odarbelaeze@gmail.com>"]
+description = "CLI and library to work with lattices"
+documentation = "https://github.com/pcm-ca/vegas-lattice-rs/wiki"
+homepage = "https://github.com/pcm-ca/vegas-lattice-rs/wiki"
+repository = "https://github.com/pcm-ca/vegas-lattice-rs"
+readme = "README.md"
+keywords = ["lattice", "graph", "crystall", "materials"]
+categories = ["command-line-utilities", "science", "simulation"]
+licence = "MIT"
+license-file = "LICENCE.txt"
+
+[badges]
+travis-ci = { repository = "pcm-ca/vegas-lattice-rs", branch = "master" }
+is-it-maintained-issue-resolution = { repository = "pcm-ca/vegas-lattice-rs" }
+is-it-maintained-open-issues = { repository = "pcm-ca/vegas-lattice-rs" }
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 serde_json = "1.0"
 serde = "*"
 serde_derive = "*"
 itertools = "0.6.0"
-sprs = "*"
 docopt = "0.8"
 image = "*"
 rand = "0.3"
