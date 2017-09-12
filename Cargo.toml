@@ -9,7 +9,6 @@ repository = "https://github.com/pcm-ca/vegas-lattice-rs"
 readme = "README.md"
 keywords = ["lattice", "graph", "crystall", "materials"]
 categories = ["command-line-utilities", "science", "simulation"]
-licence = "MIT"
 license-file = "LICENSE.txt"
 
 [badges]
@@ -24,5 +23,5 @@ serde = "*"
 serde_derive = "*"
 itertools = "0.6.0"
 docopt = "0.8"
-image = "*"
+image = "0.15"
 rand = "0.3"
