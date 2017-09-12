@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["lattice", "graph", "crystall", "materials"]
 categories = ["command-line-utilities", "science", "simulation"]
 licence = "MIT"
-license-file = "LICENCE.txt"
+license-file = "LICENSE.txt"
 
 [badges]
 travis-ci = { repository = "pcm-ca/vegas-lattice-rs", branch = "master" }
