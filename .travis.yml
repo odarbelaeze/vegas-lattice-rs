@@ -21,6 +21,7 @@ deploy:
   on:
     repo: pcm-ca/vegas-lattice-rs
     branch: master
+    tags: true
     condition: "$TRAVIS_RUST_VERSION = stable"
 
 after_deploy:
