@@ -57,6 +57,9 @@ representation.
 Notice that you can pipe the output of one command to the next one using the
 standard io.
 
+For more explanation in how the different commands work, take a look at the
+[wiki] page.
+
 
 [crates.io]: https://crates.io/
 [rust]: https://www.rust-lang.org/en-US/
