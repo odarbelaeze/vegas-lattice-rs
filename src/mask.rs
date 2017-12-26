@@ -32,9 +32,10 @@ impl Mask {
     pub fn keep(&mut self, x: f64, y: f64) -> bool {
         let i = (x * self.ppu).floor() as u32 % self.image.width();
         let j = (y * self.ppu).floor() as u32 % self.image.height();
+        let j = self.image.height() - j - 1;
         let alpha = self.image.get_pixel(i, j).channels()[3];
         let prob = alpha as f64 / 255.0;
         let shoot: f64 = self.rng.next_f64();
-        shoot < prob        
+        shoot < prob
     }
 }
