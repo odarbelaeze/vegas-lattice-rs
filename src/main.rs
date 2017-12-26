@@ -18,10 +18,10 @@ Usage:
     vegas-lattice check [<input>]
     vegas-lattice compress [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
-    vegas-lattice alloy <source> (<target> <ratio>)... [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
+    vegas-lattice alloy <source> (<target> <ratio>)... [<input>]
     vegas-lattice mask [--ppu=<ppu>] <mask> [<input>]
-    vegas-lattice into xyz [<input>]
+    vegas-lattice into (xyz|tsv) [<input>]
     vegas-lattice (-h | --help)
     vegas-lattice --version
 
@@ -99,21 +99,6 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
-    let source = args.get_str("<source>");
-    let kinds = args.get_vec("<target>");
-    let ratios = args.get_vec("<ratio>")
-        .into_iter()
-        .map(|r| r.parse())
-        .collect::<Result<Vec<u32>, _>>()?;
-    let alloy = Alloy::new(kinds, ratios);
-    let mut lattice = read(args.get_str("<input>"))?;
-    lattice = lattice.alloy_sites(source, alloy);
-    write(lattice);
-    Ok(())
-}
-
-
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
     let map = Axis::map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
@@ -124,6 +109,21 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
             lattice = lattice.expand_along(axis, size);
         }
     }
+    write(lattice);
+    Ok(())
+}
+
+
+fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
+    let source = args.get_str("<source>");
+    let kinds = args.get_vec("<target>");
+    let ratios = args.get_vec("<ratio>")
+        .into_iter()
+        .map(|r| r.parse())
+        .collect::<Result<Vec<u32>, _>>()?;
+    let alloy = Alloy::new(kinds, ratios);
+    let mut lattice = read(args.get_str("<input>"))?;
+    lattice = lattice.alloy_sites(source, alloy);
     write(lattice);
     Ok(())
 }
@@ -141,11 +141,17 @@ fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
 
 
 fn into(args: ArgvMap) -> Result<(), Box<Error>> {
-    if args.get_bool("xyz") {
-        let lattice = read(args.get_str("<input>"))?;
+    let lattice = read(args.get_str("<input>"))?;
+    if args.get_bool("tsv") {
         for site in lattice.sites().iter() {
             let (x, y, z) = site.position();
-            println!("{} {} {} {}", x, y, z, site.kind())
+            println!("{}\t{}\t{}\t{}", x, y, z, site.kind())
+        }
+    } else if args.get_bool("xyz") {
+        println!("{}\n", lattice.sites().len());
+        for site in lattice.sites().iter() {
+            let (x, y, z) = site.position();
+            println!("{} {} {} {}", site.kind(), x, y, z)
         }
     }
     Ok(())
