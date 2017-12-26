@@ -22,7 +22,7 @@ cargo install vegas-lattice
 
 after runing that you will have an executable `vegas-lattice` in your system
 that will run as expected. Otherwise you can grab an appropriate binary from
-the [releases](releases) page.
+the [releases] page.
 
 If you intent to use it as a library just add the the following line to your
 `Cargo.toml`:
@@ -64,3 +64,5 @@ For more explanation in how the different commands work, take a look at the
 [crates.io]: https://crates.io/
 [rust]: https://www.rust-lang.org/en-US/
 [wiki]: https://github.com/pcm-ca/vegas-lattice-rs/wiki
+[releases]: https://github.com/pcm-ca/vegas-lattice-rs/releases
+
