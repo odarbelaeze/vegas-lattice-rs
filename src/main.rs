@@ -8,7 +8,7 @@ use std::io::{stdin, Read};
 use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
-use vegas_lattice::{Axis, Lattice, Mask, Alloy};
+use vegas_lattice::{io, Axis, Lattice, Mask, Alloy};
 
 
 const USAGE: &'static str = "
@@ -16,7 +16,7 @@ Vegas lattice.
 
 Usage:
     vegas-lattice check [<input>]
-    vegas-lattice compress [<input>]
+    vegas-lattice pretty [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
     vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
     vegas-lattice alloy <source> (<target> <ratio>)... [<input>]
@@ -45,13 +45,13 @@ fn read(input: &str) -> Result<Lattice, Box<Error>> {
 }
 
 
-fn write_compressed(lattice: Lattice) {
+fn write(lattice: Lattice) {
     println!("{}", serde_json::to_string(&lattice).unwrap());
 }
 
 
-fn write(lattice: Lattice) {
-    println!("{}", serde_json::to_string_pretty(&lattice).unwrap());
+fn write_pretty(lattice: Lattice) {
+    println!("{}", io::to_string_lattice(&lattice).unwrap());
 }
 
 
@@ -80,9 +80,9 @@ fn check(args: ArgvMap) -> Result<(), Box<Error>> {
 }
 
 
-fn compress(args: ArgvMap) -> Result<(), Box<Error>> {
+fn pretty(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
-    write_compressed(lattice);
+    write_pretty(lattice);
     Ok(())
 }
 
@@ -165,8 +165,8 @@ fn main() {
 
     if args.get_bool("check") {
         check_error(check(args));
-    } else if args.get_bool("compress") {
-        check_error(compress(args));
+    } else if args.get_bool("pretty") {
+        check_error(pretty(args));
     } else if args.get_bool("drop") {
         check_error(drop(args));
     } else if args.get_bool("alloy") {
