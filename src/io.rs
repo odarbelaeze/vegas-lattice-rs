@@ -5,10 +5,156 @@ use std::io;
 
 
 pub struct LatticeFormatter {
+    current_indent: usize,
+    has_value: bool,
+    max_indent: usize,
+    indent: &'static [u8],
+}
+
+
+impl LatticeFormatter {
+    pub fn new() -> Self {
+        LatticeFormatter::with_max_indent(3)
+    }
+
+    pub fn with_max_indent(max_indent: usize) -> Self {
+        LatticeFormatter {
+            current_indent: 0,
+            has_value: false,
+            max_indent: max_indent,
+            indent: b"  ",
+        }
+    }
+
+    #[inline]
+    fn indent_level(&self) -> usize {
+        if self.current_indent < self.max_indent {
+            self.max_indent
+        } else {
+            0
+        }
+    }
+
+    #[inline]
+    fn new_line(&self) -> &'static [u8; 1] {
+        if self.current_indent >= self.max_indent {
+            b" "
+        } else {
+            b"\n"
+        }
+    }
+}
+
+
+impl Default for LatticeFormatter {
+    fn default() -> Self {
+        LatticeFormatter::new()
+    }
 }
 
 
 impl Formatter for LatticeFormatter {
+
+    #[inline]
+    fn begin_array<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        self.current_indent += 1;
+        self.has_value = false;
+        writer.write_all(b"[")
+    }
+
+    #[inline]
+    fn end_array<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        self.current_indent -= 1;
+
+        if self.has_value {
+            try!(writer.write_all(self.new_line()));
+            try!(indent(writer, self.indent_level(), self.indent));
+        }
+
+        writer.write_all(b"]")
+    }
+
+    #[inline]
+    fn begin_array_value<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        if !first {
+            try!(writer.write_all(b","));
+        }
+        try!(writer.write_all(self.new_line()));
+        try!(indent(writer, self.indent_level(), self.indent));
+        Ok(())
+    }
+
+    #[inline]
+    fn end_array_value<W: ?Sized>(&mut self, _writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        self.has_value = true;
+        Ok(())
+    }
+
+    #[inline]
+    fn begin_object<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        self.current_indent += 1;
+        self.has_value = false;
+        writer.write_all(b"{")
+    }
+
+    #[inline]
+    fn end_object<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        self.current_indent -= 1;
+
+        if self.has_value {
+            try!(writer.write_all(self.new_line()));
+            try!(indent(writer, self.indent_level(), self.indent));
+        }
+
+        writer.write_all(b"}")
+    }
+
+    #[inline]
+    fn begin_object_key<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        if !first {
+            try!(writer.write_all(b","));
+        }
+        try!(writer.write_all(self.new_line()));
+        indent(writer, self.indent_level(), self.indent)
+    }
+
+    #[inline]
+    fn begin_object_value<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        writer.write_all(b": ")
+    }
+
+    #[inline]
+    fn end_object_value<W: ?Sized>(&mut self, _writer: &mut W) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        self.has_value = true;
+        Ok(())
+    }
 }
 
 
@@ -18,7 +164,7 @@ where
     W: io::Write,
     T: ser::Serialize,
 {
-    let mut ser = Serializer::with_formatter(writer, LatticeFormatter {});
+    let mut ser = Serializer::with_formatter(writer, LatticeFormatter::new());
     try!(value.serialize(&mut ser));
     Ok(())
 }
@@ -46,4 +192,16 @@ where
         String::from_utf8_unchecked(vec)
     };
     Ok(string)
+}
+
+
+fn indent<W: ?Sized>(wr: &mut W, n: usize, s: &[u8]) -> io::Result<()>
+where
+    W: io::Write,
+{
+    for _ in 0..n {
+        try!(wr.write_all(s));
+    }
+
+    Ok(())
 }
