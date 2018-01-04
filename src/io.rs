@@ -14,7 +14,7 @@ pub struct LatticeFormatter {
 
 impl LatticeFormatter {
     pub fn new() -> Self {
-        LatticeFormatter::with_max_indent(3)
+        LatticeFormatter::with_max_indent(2)
     }
 
     pub fn with_max_indent(max_indent: usize) -> Self {
@@ -27,24 +27,32 @@ impl LatticeFormatter {
     }
 
     #[inline]
-    fn indent_level(&self) -> usize {
-        if self.current_indent < self.max_indent {
-            self.max_indent
-        } else {
-            0
-        }
+    fn above_max_indent(&self) -> bool {
+        self.current_indent > self.max_indent
     }
 
     #[inline]
-    fn new_line(&self) -> &'static [u8; 1] {
-        if self.current_indent >= self.max_indent {
-            b" "
-        } else {
-            b"\n"
+    fn begin_colletion_item<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    where
+        W: io::Write,
+    {
+        match (first, self.above_max_indent()) {
+            (true, false) => {
+                try!(writer.write_all(b"\n"));
+                indent(writer, self.current_indent, self.indent)
+            },
+            (false, false) => {
+                try!(writer.write_all(b",\n"));
+                indent(writer, self.current_indent, self.indent)
+            },
+            (false, true) => {
+                try!(writer.write_all(b", "));
+                Ok(())
+            },
+            (true, true) => Ok(()),
         }
     }
 }
-
 
 impl Default for LatticeFormatter {
     fn default() -> Self {
@@ -70,11 +78,12 @@ impl Formatter for LatticeFormatter {
     where
         W: io::Write,
     {
+
         self.current_indent -= 1;
 
-        if self.has_value {
-            try!(writer.write_all(self.new_line()));
-            try!(indent(writer, self.indent_level(), self.indent));
+        if !self.above_max_indent() && self.has_value {
+            try!(writer.write_all(b"\n"));
+            try!(indent(writer, self.current_indent, self.indent));
         }
 
         writer.write_all(b"]")
@@ -85,12 +94,7 @@ impl Formatter for LatticeFormatter {
     where
         W: io::Write,
     {
-        if !first {
-            try!(writer.write_all(b","));
-        }
-        try!(writer.write_all(self.new_line()));
-        try!(indent(writer, self.indent_level(), self.indent));
-        Ok(())
+        self.begin_colletion_item(writer, first)
     }
 
     #[inline]
@@ -117,13 +121,11 @@ impl Formatter for LatticeFormatter {
     where
         W: io::Write,
     {
-        self.current_indent -= 1;
-
-        if self.has_value {
-            try!(writer.write_all(self.new_line()));
-            try!(indent(writer, self.indent_level(), self.indent));
+        if !self.above_max_indent() && self.has_value {
+            try!(writer.write_all(b"\n"));
+            try!(indent(writer, self.current_indent - 1, self.indent));
         }
-
+        self.current_indent -= 1;
         writer.write_all(b"}")
     }
 
@@ -132,11 +134,7 @@ impl Formatter for LatticeFormatter {
     where
         W: io::Write,
     {
-        if !first {
-            try!(writer.write_all(b","));
-        }
-        try!(writer.write_all(self.new_line()));
-        indent(writer, self.indent_level(), self.indent)
+        self.begin_colletion_item(writer, first)
     }
 
     #[inline]
