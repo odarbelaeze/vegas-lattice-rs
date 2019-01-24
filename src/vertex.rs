@@ -98,7 +98,7 @@ mod test {
             {"source": 0, "target": 1, "delta": [0, 0, 1], "tags": ["core", "inner"]}
         "#;
         let vertex: Vertex = data.parse().unwrap();
-        let vertex = vertex.reindex(&vec![1, 0]);
+        let vertex = vertex.reindex(&[1, 0]);
         assert_eq!(vertex.source, 1);
         assert_eq!(vertex.target, 0);
     }

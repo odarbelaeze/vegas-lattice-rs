@@ -194,7 +194,7 @@ mod test {
         "#;
         let lattice: Lattice = data.parse().unwrap();
         let lattice = lattice.drop(Axis::Z);
-        assert!(lattice.vertices.len() == 0);
+        assert!(lattice.vertices.is_empty());
     }
 
     #[test]
