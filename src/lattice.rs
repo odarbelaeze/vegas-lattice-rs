@@ -28,11 +28,11 @@ impl Lattice {
         self.size
     }
 
-    pub fn sites<'a> (&'a self) -> &'a [Site] {
+    pub fn sites(&self) -> &[Site] {
         &self.sites
     }
 
-    pub fn vertices<'a> (&'a self) -> &'a [Vertex] {
+    pub fn vertices(&self) -> &[Vertex] {
         &self.vertices
     }
 
@@ -138,7 +138,7 @@ impl FromStr for Lattice {
     type Err = LatticeError;
     fn from_str(source: &str) -> Result<Lattice, Self::Err> {
         serde_json::from_str(source)
-            .map_err(|err| LatticeError::JsonParseError(err))
+            .map_err(LatticeError::JsonParseError)
             .and_then(|lattice: Lattice| lattice.validate())
     }
 }

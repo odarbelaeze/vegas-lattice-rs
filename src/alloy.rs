@@ -14,11 +14,11 @@ impl Alloy {
             .into_iter()
             .zip(ratios.into_iter())
             .map(|(item, weight)| Weighted {
-                weight: weight,
+                weight,
                 item: item.to_owned()
             })
             .collect();
-        Self { items: items, }
+        Self { items }
     }
 
     pub fn choices(self) -> Vec<Weighted<String>> {

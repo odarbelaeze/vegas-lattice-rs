@@ -21,7 +21,7 @@ impl LatticeFormatter {
         LatticeFormatter {
             current_indent: 0,
             has_value: false,
-            max_indent: max_indent,
+            max_indent,
             indent: b"  ",
         }
     }

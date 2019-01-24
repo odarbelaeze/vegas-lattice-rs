@@ -11,7 +11,7 @@ use docopt::{ArgvMap, Docopt};
 use vegas_lattice::{io, Axis, Lattice, Mask, Alloy};
 
 
-const USAGE: &'static str = "
+const USAGE: &str = "
 Vegas lattice.
 
 Usage:
@@ -56,16 +56,11 @@ fn write_pretty(lattice: Lattice) {
 
 
 fn check_error(res: Result<(), Box<Error>>) {
-    match res {
-        Err(e) => {
-            eprintln!("Error: {}", e.description());
-            match e.cause() {
-                Some(cause) => eprintln!("Cause: {}", cause),
-                _ => ()
-            };
-            std::process::exit(1);
-        },
-        _ => {},
+    if let Err(e) = res {
+        eprintln!("Error: {}", e.description());
+        if let Some(cause) = e.cause() {
+            eprintln!("Cause: {}", cause);
+        }
     }
 }
 

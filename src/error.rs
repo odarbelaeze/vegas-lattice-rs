@@ -33,8 +33,8 @@ impl StdError for LatticeError {
     }
 
     fn cause(&self) -> Option<&StdError> {
-        match self {
-            &LatticeError::JsonParseError(ref err) => Some(err),
+        match *self {
+            LatticeError::JsonParseError(ref err) => Some(err),
             _ => None,
         }
     }

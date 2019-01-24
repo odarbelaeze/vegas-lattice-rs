@@ -24,7 +24,7 @@ impl Mask {
         let img = image::open(path)?;
         Ok(Self {
                image: Box::new(img),
-               ppu: ppu,
+               ppu,
                rng: thread_rng(),
            })
     }
@@ -34,7 +34,7 @@ impl Mask {
         let j = (y * self.ppu).floor() as u32 % self.image.height();
         let j = self.image.height() - j - 1;
         let alpha = self.image.get_pixel(i, j).channels()[3];
-        let prob = alpha as f64 / 255.0;
+        let prob = f64::from(alpha) / 255.0;
         let shoot: f64 = self.rng.next_f64();
         shoot < prob
     }
