@@ -149,9 +149,8 @@ impl Lattice {
 impl FromStr for Lattice {
     type Err = LatticeError;
     fn from_str(source: &str) -> Result<Lattice, Self::Err> {
-        serde_json::from_str(source)
-            .map_err(LatticeError::JsonParseError)
-            .and_then(|lattice: Lattice| lattice.validate())
+        let lattice: Lattice = serde_json::from_str(source)?;
+        lattice.validate()
     }
 }
 
