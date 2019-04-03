@@ -3,18 +3,18 @@ name = "vegas-lattice"
 version = "0.3.0"
 authors = ["Oscar David Arbeláez Echeverri <odarbelaeze@gmail.com>"]
 description = "CLI and library to work with lattices"
-documentation = "https://github.com/pcm-ca/vegas-lattice-rs/wiki"
-homepage = "https://github.com/pcm-ca/vegas-lattice-rs/wiki"
-repository = "https://github.com/pcm-ca/vegas-lattice-rs"
+documentation = "https://github.com/odarbelaeze/vegas-lattice-rs/wiki"
+homepage = "https://github.com/odarbelaeze/vegas-lattice-rs/wiki"
+repository = "https://github.com/odarbelaeze/vegas-lattice-rs"
 readme = "README.md"
 keywords = ["lattice", "graph", "crystall", "materials"]
 categories = ["command-line-utilities", "science", "simulation"]
 license-file = "LICENSE.txt"
 
 [badges]
-travis-ci = { repository = "pcm-ca/vegas-lattice-rs", branch = "master" }
-is-it-maintained-issue-resolution = { repository = "pcm-ca/vegas-lattice-rs" }
-is-it-maintained-open-issues = { repository = "pcm-ca/vegas-lattice-rs" }
+travis-ci = { repository = "odarbelaeze/vegas-lattice-rs", branch = "master" }
+is-it-maintained-issue-resolution = { repository = "odarbelaeze/vegas-lattice-rs" }
+is-it-maintained-open-issues = { repository = odarbelaeze/vegas-lattice-rs" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]

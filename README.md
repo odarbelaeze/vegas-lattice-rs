@@ -1,8 +1,8 @@
 # vegas-lattice-rs
 
-[![Build Status](https://travis-ci.org/pcm-ca/vegas-lattice-rs.svg?branch=master)](https://travis-ci.org/pcm-ca/vegas-lattice-rs)
-[![Stories in Ready](https://badge.waffle.io/pcm-ca/vegas-lattice-rs.svg?label=ready&title=Ready)](http://waffle.io/pcm-ca/vegas-lattice-rs)
+[![Build Status](https://travis-ci.org/odarbelaeze/vegas-lattice-rs.svg?branch=master)](https://travis-ci.org/odarbelaeze/vegas-lattice-rs)
 [![DOI](https://zenodo.org/badge/90330925.svg)](https://zenodo.org/badge/latestdoi/90330925)
+![Crates.io](https://img.shields.io/crates/v/vegas-lattice.svg)
 
 A little tool/library to build lattices and samples out of patterns written in
 [rust].
@@ -63,6 +63,6 @@ For more explanation in how the different commands work, take a look at the
 
 [crates.io]: https://crates.io/
 [rust]: https://www.rust-lang.org/en-US/
-[wiki]: https://github.com/pcm-ca/vegas-lattice-rs/wiki
-[releases]: https://github.com/pcm-ca/vegas-lattice-rs/releases
+[wiki]: https://github.com/odarbelaeze/vegas-lattice-rs/wiki
+[releases]: https://github.com/odarbelaeze/vegas-lattice-rs/releases
 
