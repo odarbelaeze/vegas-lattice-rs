@@ -53,8 +53,8 @@ fn write_pretty(lattice: Lattice) {
 fn check_error(res: Result<(), Box<Error>>) {
     if let Err(e) = res {
         eprintln!("Error: {}", e.description());
-        if let Some(cause) = e.cause() {
-            eprintln!("Cause: {}", cause);
+        if let Some(source) = e.source() {
+            eprintln!("Cause: {}", source);
         }
     }
 }
