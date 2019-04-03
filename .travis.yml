@@ -5,24 +5,16 @@ rust:
   - stable
   - beta
 
-before_deploy:
-  - cargo package
-
-env:
-  global:
-    - secure: "NHQ+pHx+XHghzKwA8UL7vbNYeu43IPHWCMUpeD4hJ57iFvCfqDPQ++a1cOAdS0XlFFxvALR7S27MJhXzCd641X/+Ns5inL/IvPLjBzSBx8BjsDz1wgY9fLDdfuSsPndKJz4cNiRFxPELnnfWFTCQUhP8j+S3LID7qerC+ccYxnR+d2CnTFoiMUjXj+zeatuvP4faBT0TOQALSwsPlZEMDT//zl3FI1+k9HhwCSo1mM/EvvQQwe7i44BvKEdQvSYhIcO/2HAmDmMGmBZRi/Ft4LfLHSF+aJtBQKMIZn+saTX8awFD5iEnei679H4i8IAqm9Y+/ETwQKBPNcZ+3Jc8V3Lxa2YiWy/uq3xskRrYuyPLL/0j8dGlROtgUzthKxYtx9y5wC0QWSRL9r8VhcXWSbMv7IAC5AwNVET7nt+qtREoRWx3tJvsWeDkNgmn7nxcQrV5wF0XxpFOaNTtsMHCIXAomaPYLQg5TUiMkU7PWWnvU/PUyMukz4eRsvAWrPdO9ZsTkqj7c6R/ipjxhYAEHGpj2D4CuckacCf/KkvaWIkcIgMPLM9fuCWszNOAkVA+kciISwEmLI3bL2/kzyDULYMEsd+qJWpJZqvwMlV//q9eE6kS740qY6oBcKhGD1ptRMuajc+Cj3YDmFz5Ff05ec+VGoCg87jUlQoY+M8fiYI="
-
-deploy:
-  provider: releases
-  api_key:
-    secure: h5i/VHyodXpOOu3IF+GaqZFXsMdKSrR90Ry5RwUNMJICKNlIpNQ0scChwgyfXzQ1hjBC3qvA71R78upH3BqX1ub1VaBC+tU98u0VqH6FDNHuStwcB9R9MAc+VnHjTkMiWt9yTLcU96IPDsni2VKSrjP1+UBnlJtPyH63R5YVmpisbWs/iyUrsiqKtZx5f5b0qvKAwSlisLcjDgIVrsLaJqa0q3AFGxvjw78U9xnmpjfa2sbI28UmmWzWVhg6C8uGCUVGrqBt9De4iqA+MohHXiy96eHqJN+Oc7rW/kGjXd6kii42eb6q7eFifqr9EJQgsT9Fy6fkE1qNEj3v5CrkW3UX1CivXA14XAWEfmG7fOfla1Ct5VMYrZZXmYTKRX7lTQqssn+d0haELhRIfZdaqpYsU0HQPfiYSNVCMhFZRzbB0uhhkN+EVqRMkhps1RDTBHTcYXCk5TANEiA22PM9imhkM48CTjOywGDr/gymE49syj62qCCusByCUfztpTyzyPDzt+uPVGIIPXdqIOXQMtwowYVdet952X8pC19mB5cpUf5uM/V0GanPZK2O0IgB6TfNScipPn9OzUlw43TxkLAm/URi9Hdvs5aHxffvWRT7kVt5GJHv/CYOjHtA7tq2uHOXdp0rNKxyQY1bQkSzC6m1D3GZpZM8XWu7RLLbcrc=
-  file: target/package/vegas-lattice-$TRAVIS_TAG.crate
-  skip_cleanup: true
-  on:
-    repo: pcm-ca/vegas-lattice-rs
-    branch: master
-    tags: true
-    condition: "$TRAVIS_RUST_VERSION = stable"
-
-after_deploy:
-  - cargo publish --token "$CRATESIO_TOKEN"
+jobs:
+  include:
+    - stage: deploy
+      rust: stable
+      script: skip
+      deploy:
+        - provider: cargo
+          token:
+            secure: Aa0jA4xXa8Bai6M1pO2dsujPM/DVHLHHkczx0eSO7ZiP0zKaaDbCrvy3tzTTStm6AI4NtIU69xIWg4j2JPnqxgHn0ZeYSZDGbe6UjjfzSQmTRqc56zoP3hFcdjVGNqaYE0RNJWxSvzEryE47HLKU51OGJkY1AWJuGG3tQM+mBM0AkPIEl/AlgGBvE+nAqOH7jE3rEsfqPoVrRzgTAuAVp6kOSHL36eGXxcKSIG/TsnQjUFmNxvSVHMizPGFUagjfDWMdW9bwds5Cr2gkvEOJpALEqZ/eg0+sdHosqL0mB/R0WQ7wLkPDe7xS8GBHhIh8GESzbNoN5FGBCpVzMWxgEMtDeBPLEQ9hX4YLfJkb4MueT1G09/yQR6o3XTgft/TumE/b8rXBSsniSMPjpHI+XOKZlQo1GK6G9GR37+ziizR8ltSBsop/sltB79e8UN1HJpgXWK8D5dX4dX/LVjDl3AS8kwI3O0dbWk/B/ZS+QInQc1lUjrsNTMU9tVaZlaZZmEp1obG6s7yeK8LGg1WFvFevSVyz6LhUqMBGV2Gvi++AUvqRMWmPSe3rcUoCziQ4SMHJOpZUFCjbjvZYc08erMl1Z6n+1Hg/Oiuhj/iabjOS/ZT/ZAr5QKIap7VDMpXF2dQANLyGVrtFL93IZ3XPA6VXq8j11U1Xx6y/GeTU5As=
+          on:
+            repo: odarbelaeze/vegas-lattice-rs
+            branch: master
+            tags: true
