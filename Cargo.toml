@@ -14,7 +14,7 @@ license-file = "LICENSE.txt"
 [badges]
 travis-ci = { repository = "odarbelaeze/vegas-lattice-rs", branch = "master" }
 is-it-maintained-issue-resolution = { repository = "odarbelaeze/vegas-lattice-rs" }
-is-it-maintained-open-issues = { repository = odarbelaeze/vegas-lattice-rs" }
+is-it-maintained-open-issues = { repository = "odarbelaeze/vegas-lattice-rs" }
 maintenance = { status = "actively-developed" }
 
 [dependencies]
