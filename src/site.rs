@@ -2,9 +2,8 @@ extern crate serde_json;
 
 use std::str::FromStr;
 
-use serde_json::Error as SerdeError;
 use super::util::{Axis, Tagged};
-
+use serde_json::Error as SerdeError;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
@@ -13,7 +12,6 @@ pub struct Site {
     tags: Option<Vec<String>>,
 }
 
-
 impl FromStr for Site {
     type Err = SerdeError;
     fn from_str(source: &str) -> Result<Site, Self::Err> {
@@ -21,16 +19,14 @@ impl FromStr for Site {
     }
 }
 
-
 impl Tagged for Site {
     fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
         match self.tags {
             Some(ref tags) => Some(&tags),
-            None => None
+            None => None,
         }
     }
 }
-
 
 impl Site {
     pub fn position(&self) -> (f64, f64, f64) {
@@ -57,7 +53,6 @@ impl Site {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::Site;
@@ -70,8 +65,10 @@ mod test {
         "#;
         let site_result: Result<Site, _> = data.parse();
         assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags,
-                   Some(vec!["core".to_string(), "inner".to_string()]));
+        assert_eq!(
+            site_result.unwrap().tags,
+            Some(vec!["core".to_string(), "inner".to_string()])
+        );
     }
 
     #[test]

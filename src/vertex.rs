@@ -2,9 +2,8 @@ extern crate serde_json;
 
 use std::str::FromStr;
 
+use super::util::{python_mod, Axis, Tagged};
 use serde_json::Error as SerdeError;
-use super::util::{Axis, Tagged, python_mod};
-
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {
@@ -14,7 +13,6 @@ pub struct Vertex {
     tags: Option<Vec<String>>,
 }
 
-
 impl FromStr for Vertex {
     type Err = SerdeError;
     fn from_str(source: &str) -> Result<Vertex, Self::Err> {
@@ -22,19 +20,16 @@ impl FromStr for Vertex {
     }
 }
 
-
 impl Tagged for Vertex {
     fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
         match self.tags {
             Some(ref tags) => Some(&tags),
-            None => None
+            None => None,
         }
     }
 }
 
-
 impl Vertex {
-
     pub fn source(&self) -> usize {
         self.source
     }
@@ -76,7 +71,6 @@ impl Vertex {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::Vertex;
@@ -88,8 +82,10 @@ mod test {
         "#;
         let vertex_result: Result<Vertex, _> = data.parse();
         assert!(vertex_result.is_ok());
-        assert_eq!(vertex_result.unwrap().tags,
-                   Some(vec!["core".to_string(), "inner".to_string()]));
+        assert_eq!(
+            vertex_result.unwrap().tags,
+            Some(vec!["core".to_string(), "inner".to_string()])
+        );
     }
 
     #[test]
@@ -98,7 +94,7 @@ mod test {
             {"source": 0, "target": 1, "delta": [0, 0, 1], "tags": ["core", "inner"]}
         "#;
         let vertex: Vertex = data.parse().unwrap();
-        let vertex = vertex.reindex(&vec![1, 0]);
+        let vertex = vertex.reindex(&[1, 0]);
         assert_eq!(vertex.source, 1);
         assert_eq!(vertex.target, 0);
     }

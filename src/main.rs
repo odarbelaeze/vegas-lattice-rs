@@ -8,10 +8,9 @@ use std::io::{stdin, Read};
 use std::path::Path;
 
 use docopt::{ArgvMap, Docopt};
-use vegas_lattice::{io, Axis, Lattice, Mask, Alloy};
+use vegas_lattice::{io, Alloy, Axis, Lattice, Mask};
 
-
-const USAGE: &'static str = "
+const USAGE: &str = "
 Vegas lattice.
 
 Usage:
@@ -31,7 +30,6 @@ Options:
     --version       Show version and exit.
 ";
 
-
 fn read(input: &str) -> Result<Lattice, Box<Error>> {
     let mut data = String::new();
     if !input.is_empty() {
@@ -44,34 +42,24 @@ fn read(input: &str) -> Result<Lattice, Box<Error>> {
     Ok(lattice)
 }
 
-
 fn write(lattice: Lattice) {
     println!("{}", serde_json::to_string(&lattice).unwrap());
 }
-
 
 fn write_pretty(lattice: Lattice) {
     println!("{}", io::to_string_lattice(&lattice).unwrap());
 }
 
-
 fn check_error(res: Result<(), Box<Error>>) {
-    match res {
-        Err(e) => {
-            eprintln!("Error: {}", e.description());
-            match e.cause() {
-                Some(cause) => eprintln!("Cause: {}", cause),
-                _ => ()
-            };
-            std::process::exit(1);
-        },
-        _ => {},
+    if let Err(e) = res {
+        eprintln!("Error: {}", e.description());
+        if let Some(source) = e.source() {
+            eprintln!("Cause: {}", source);
+        }
     }
 }
 
-
 // Commands over here
-
 
 fn check(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
@@ -79,13 +67,11 @@ fn check(args: ArgvMap) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-
 fn pretty(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
     write_pretty(lattice);
     Ok(())
 }
-
 
 fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
@@ -97,7 +83,6 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     write(lattice);
     Ok(())
 }
-
 
 fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
     let map = Axis::map(Some("--".to_string()));
@@ -113,11 +98,11 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-
 fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
     let source = args.get_str("<source>");
     let kinds = args.get_vec("<target>");
-    let ratios = args.get_vec("<ratio>")
+    let ratios = args
+        .get_vec("<ratio>")
         .into_iter()
         .map(|r| r.parse())
         .collect::<Result<Vec<u32>, _>>()?;
@@ -128,7 +113,6 @@ fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-
 fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
     let path = args.get_str("<mask>");
     let ppu: f64 = args.get_str("--ppu").parse()?;
@@ -138,7 +122,6 @@ fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
     write(lattice);
     Ok(())
 }
-
 
 fn into(args: ArgvMap) -> Result<(), Box<Error>> {
     let lattice = read(args.get_str("<input>"))?;
@@ -156,7 +139,6 @@ fn into(args: ArgvMap) -> Result<(), Box<Error>> {
     }
     Ok(())
 }
-
 
 fn main() {
     let args = Docopt::new(USAGE)
