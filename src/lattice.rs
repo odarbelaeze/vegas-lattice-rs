@@ -1,8 +1,8 @@
 extern crate serde_json;
 
+use std::iter::repeat;
 use std::str::FromStr;
 
-use itertools::Itertools;
 use rand::distributions::{IndependentSample, WeightedChoice};
 use rand::thread_rng;
 
@@ -73,12 +73,16 @@ impl Lattice {
         let n_sites = self.sites.len();
 
         self.sites = (0..amount)
-            .cartesian_product(self.sites)
+            .map(|i| repeat(i).take(n_sites))
+            .flatten()
+            .zip(self.sites().iter().cycle())
             .map(|(index, site)| site.move_along(axis, (index as f64) * size))
             .collect();
 
         self.vertices = (0..amount)
-            .cartesian_product(self.vertices)
+            .map(|i| repeat(i).take(n_sites))
+            .flatten()
+            .zip(self.vertices.iter().cycle())
             .map(|(index, vertex)| vertex.move_along(axis, index, n_sites, amount))
             .collect();
 
