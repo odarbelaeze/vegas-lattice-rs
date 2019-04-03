@@ -1,12 +1,11 @@
 // Let's abstract an alloy
 
-use rand::distributions::{Weighted};
+use rand::distributions::Weighted;
 
 #[derive(Debug)]
 pub struct Alloy {
     items: Vec<Weighted<String>>,
 }
-
 
 impl Alloy {
     pub fn new(kinds: Vec<&str>, ratios: Vec<u32>) -> Self {
@@ -15,7 +14,7 @@ impl Alloy {
             .zip(ratios.into_iter())
             .map(|(item, weight)| Weighted {
                 weight,
-                item: item.to_owned()
+                item: item.to_owned(),
             })
             .collect();
         Self { items }

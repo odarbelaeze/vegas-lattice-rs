@@ -1,7 +1,7 @@
-#[macro_use] extern crate itertools;
+#[macro_use]
+extern crate itertools;
 
-use itertools::{Itertools, cons_tuples};
-
+use itertools::{cons_tuples, Itertools};
 
 #[test]
 fn itertools_over_a_two_by_two_lattice() {
@@ -11,7 +11,6 @@ fn itertools_over_a_two_by_two_lattice() {
     );
 }
 
-
 #[test]
 fn cartesian_products_by_hand() {
     assert_eq!(
@@ -20,15 +19,10 @@ fn cartesian_products_by_hand() {
     );
 }
 
-
 #[test]
 fn triple_cartesian_products_by_hand() {
     assert_eq!(
         iproduct!(0..2, 0..2, 0..2).collect::<Vec<_>>(),
-        cons_tuples(
-            (0..2)
-                .cartesian_product(0..2)
-                .cartesian_product(0..2)
-        ).collect::<Vec<_>>()
+        cons_tuples((0..2).cartesian_product(0..2).cartesian_product(0..2)).collect::<Vec<_>>()
     );
 }

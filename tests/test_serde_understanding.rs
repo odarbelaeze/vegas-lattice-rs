@@ -36,7 +36,6 @@ fn typed_example(data: &str) -> Result<(), Error> {
     Ok(())
 }
 
-
 #[test]
 fn it_works_with_simple_data() {
     let data = r#"{
@@ -51,7 +50,6 @@ fn it_works_with_simple_data() {
     assert!(result.is_ok());
 }
 
-
 #[test]
 fn it_errs_if_data_is_wrong() {
     let data = r#"{
@@ -65,7 +63,6 @@ fn it_errs_if_data_is_wrong() {
     let result = typed_example(data);
     assert!(result.is_err());
 }
-
 
 #[test]
 fn it_nests_structures() {
@@ -93,7 +90,6 @@ fn it_nests_structures() {
     assert!(result.is_ok());
 }
 
-
 #[test]
 fn it_expands_vectors() {
     let data = r#"[
@@ -117,7 +113,6 @@ fn it_expands_vectors() {
     let result: Result<Vec<Person>, Error> = serde_json::from_str(data);
     assert!(result.is_ok());
 }
-
 
 #[test]
 fn optional_values_can_be_left_out() {

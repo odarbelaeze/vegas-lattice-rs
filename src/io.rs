@@ -1,8 +1,7 @@
-use serde_json::error::Result;
-use serde_json::ser::{Serializer, Formatter};
 use serde::ser;
+use serde_json::error::Result;
+use serde_json::ser::{Formatter, Serializer};
 use std::io;
-
 
 pub struct LatticeFormatter {
     current_indent: usize,
@@ -10,7 +9,6 @@ pub struct LatticeFormatter {
     max_indent: usize,
     indent: &'static [u8],
 }
-
 
 impl LatticeFormatter {
     pub fn new() -> Self {
@@ -33,7 +31,8 @@ impl LatticeFormatter {
 
     #[inline]
     fn begin_colletion_item<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         match (first, self.above_max_indent()) {
             (true, false) => {
@@ -59,11 +58,11 @@ impl Default for LatticeFormatter {
     }
 }
 
-
 impl Formatter for LatticeFormatter {
     #[inline]
     fn begin_array<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         self.current_indent += 1;
         self.has_value = false;
@@ -72,7 +71,8 @@ impl Formatter for LatticeFormatter {
 
     #[inline]
     fn end_array<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         if !self.above_max_indent() && self.has_value {
             try!(writer.write_all(b"\n"));
@@ -84,14 +84,16 @@ impl Formatter for LatticeFormatter {
 
     #[inline]
     fn begin_array_value<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         self.begin_colletion_item(writer, first)
     }
 
     #[inline]
     fn end_array_value<W: ?Sized>(&mut self, _writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         self.has_value = true;
         Ok(())
@@ -99,7 +101,8 @@ impl Formatter for LatticeFormatter {
 
     #[inline]
     fn begin_object<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         self.current_indent += 1;
         self.has_value = false;
@@ -108,7 +111,8 @@ impl Formatter for LatticeFormatter {
 
     #[inline]
     fn end_object<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         if !self.above_max_indent() && self.has_value {
             try!(writer.write_all(b"\n"));
@@ -120,52 +124,55 @@ impl Formatter for LatticeFormatter {
 
     #[inline]
     fn begin_object_key<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         self.begin_colletion_item(writer, first)
     }
 
     #[inline]
     fn begin_object_value<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         writer.write_all(b": ")
     }
 
     #[inline]
     fn end_object_value<W: ?Sized>(&mut self, _writer: &mut W) -> io::Result<()>
-        where W: io::Write
+    where
+        W: io::Write,
     {
         self.has_value = true;
         Ok(())
     }
 }
 
-
 #[inline]
 pub fn to_writer_lattice<W, T: ?Sized>(writer: W, value: &T) -> Result<()>
-    where W: io::Write,
-          T: ser::Serialize
+where
+    W: io::Write,
+    T: ser::Serialize,
 {
     let mut ser = Serializer::with_formatter(writer, LatticeFormatter::new());
     try!(value.serialize(&mut ser));
     Ok(())
 }
 
-
 #[inline]
 pub fn to_vec_lattice<T: ?Sized>(value: &T) -> Result<Vec<u8>>
-    where T: ser::Serialize
+where
+    T: ser::Serialize,
 {
     let mut writer = Vec::with_capacity(128);
     try!(to_writer_lattice(&mut writer, value));
     Ok(writer)
 }
 
-
 #[inline]
 pub fn to_string_lattice<T: ?Sized>(value: &T) -> Result<String>
-    where T: ser::Serialize
+where
+    T: ser::Serialize,
 {
     let vec = try!(to_vec_lattice(value));
     let string = unsafe {
@@ -175,9 +182,9 @@ pub fn to_string_lattice<T: ?Sized>(value: &T) -> Result<String>
     Ok(string)
 }
 
-
 fn indent<W: ?Sized>(wr: &mut W, n: usize, s: &[u8]) -> io::Result<()>
-    where W: io::Write
+where
+    W: io::Write,
 {
     for _ in 0..n {
         try!(wr.write_all(s));

@@ -3,16 +3,15 @@ extern crate serde_json;
 use std::str::FromStr;
 
 use itertools::Itertools;
-use rand::distributions::{WeightedChoice, IndependentSample};
+use rand::distributions::{IndependentSample, WeightedChoice};
 use rand::thread_rng;
 
+use super::alloy::Alloy;
 use super::error::LatticeError;
 use super::mask::Mask;
 use super::site::Site;
 use super::util::Axis;
 use super::vertex::Vertex;
-use super::alloy::Alloy;
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
@@ -21,9 +20,7 @@ pub struct Lattice {
     vertices: Vec<Vertex>,
 }
 
-
 impl Lattice {
-
     pub fn size(&self) -> (f64, f64, f64) {
         self.size
     }
@@ -55,7 +52,8 @@ impl Lattice {
     }
 
     pub fn drop(mut self, axis: Axis) -> Self {
-        self.vertices = self.vertices
+        self.vertices = self
+            .vertices
             .into_iter()
             .filter(|v| v.delta_along(axis) == 0)
             .collect();
@@ -94,7 +92,8 @@ impl Lattice {
     }
 
     pub fn apply_mask(mut self, mut mask: Mask) -> Self {
-        let site_mask: Vec<_> = self.sites
+        let site_mask: Vec<_> = self
+            .sites
             .iter()
             .map(|s| {
                 let (x, y, _) = s.position();
@@ -103,15 +102,24 @@ impl Lattice {
             .collect();
         let mut counter = 0;
         let new_indices: Vec<_> = (0..self.sites.len())
-            .map(|i| if site_mask[i] { counter += 1; counter - 1 } else { i })
+            .map(|i| {
+                if site_mask[i] {
+                    counter += 1;
+                    counter - 1
+                } else {
+                    i
+                }
+            })
             .collect();
-        self.sites = self.sites
+        self.sites = self
+            .sites
             .into_iter()
             .enumerate()
             .filter(|&(i, ref _s)| site_mask[i])
             .map(|(_i, s)| s)
             .collect();
-        self.vertices = self.vertices
+        self.vertices = self
+            .vertices
             .into_iter()
             .filter(|v| site_mask[v.source()] && site_mask[v.target()])
             .map(|v| v.reindex(&new_indices))
@@ -123,16 +131,20 @@ impl Lattice {
         let mut items = target.choices();
         let mut rng = thread_rng();
         let weigthed_choice = WeightedChoice::new(&mut items);
-        self.sites = self.sites
+        self.sites = self
+            .sites
             .into_iter()
-            .map(|site| if site.kind() != source { site } else {
-                site.with_kind(weigthed_choice.ind_sample(&mut rng))
+            .map(|site| {
+                if site.kind() != source {
+                    site
+                } else {
+                    site.with_kind(weigthed_choice.ind_sample(&mut rng))
+                }
             })
             .collect();
         self
     }
 }
-
 
 impl FromStr for Lattice {
     type Err = LatticeError;
@@ -143,11 +155,9 @@ impl FromStr for Lattice {
     }
 }
 
-
-
 #[cfg(test)]
 mod test {
-    use super::{Vertex, Lattice, Axis};
+    use super::{Axis, Lattice, Vertex};
     use util::Tagged;
 
     #[test]
@@ -157,8 +167,10 @@ mod test {
         "#;
         let site_result: Result<Vertex, _> = data.parse();
         assert!(site_result.is_ok());
-        assert_eq!(site_result.unwrap().tags(),
-                   Some(&vec!["core".to_string(), "inner".to_string()]));
+        assert_eq!(
+            site_result.unwrap().tags(),
+            Some(&vec!["core".to_string(), "inner".to_string()])
+        );
     }
 
     #[test]
