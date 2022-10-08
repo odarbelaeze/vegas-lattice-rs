@@ -1,9 +1,8 @@
-extern crate serde_json;
-
 use std::str::FromStr;
 
 use super::util::{python_mod, Axis, Tagged};
 use serde_json::Error as SerdeError;
+use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {

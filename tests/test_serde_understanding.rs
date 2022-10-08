@@ -1,9 +1,8 @@
 extern crate serde_json;
-
-#[macro_use]
-extern crate serde_derive;
+extern crate serde;
 
 use serde_json::Error;
+use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 struct Person {

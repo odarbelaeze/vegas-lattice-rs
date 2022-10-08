@@ -1,5 +1,3 @@
-extern crate serde_json;
-
 use std::iter::repeat;
 use std::str::FromStr;
 
@@ -12,6 +10,7 @@ use super::mask::Mask;
 use super::site::Site;
 use super::util::Axis;
 use super::vertex::Vertex;
+use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
