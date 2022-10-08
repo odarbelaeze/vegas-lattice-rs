@@ -6,14 +6,13 @@ extern crate image;
 use std::error::Error;
 use std::path::Path;
 
-use self::image::{DynamicImage, GenericImage, Pixel};
-use rand::{thread_rng, Rng, ThreadRng};
+use self::image::{DynamicImage, GenericImageView, Pixel};
+use rand::Rng;
 
 pub struct Mask {
     image: Box<DynamicImage>,
     /// Pixels per unit
     ppu: f64,
-    rng: ThreadRng,
 }
 
 impl Mask {
@@ -22,17 +21,16 @@ impl Mask {
         Ok(Self {
             image: Box::new(img),
             ppu,
-            rng: thread_rng(),
         })
     }
 
-    pub fn keep(&mut self, x: f64, y: f64) -> bool {
+    pub fn keep<R: Rng + ?Sized>(&mut self, x: f64, y: f64, rng: &mut R) -> bool {
         let i = (x * self.ppu).floor() as u32 % self.image.width();
         let j = (y * self.ppu).floor() as u32 % self.image.height();
         let j = self.image.height() - j - 1;
         let alpha = self.image.get_pixel(i, j).channels()[3];
         let prob = f64::from(alpha) / 255.0;
-        let shoot: f64 = self.rng.next_f64();
+        let shoot: f64 = rng.gen();
         shoot < prob
     }
 }

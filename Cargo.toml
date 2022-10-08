@@ -20,6 +20,6 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-docopt = "0.8"
-image = "0.15"
-rand = "0.3"
+docopt = "1.1.1"
+image = "0.24.4"
+rand = "0.8.5"

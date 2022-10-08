@@ -1,7 +1,6 @@
 use std::iter::repeat;
 use std::str::FromStr;
 
-use rand::distributions::{IndependentSample, WeightedChoice};
 use rand::thread_rng;
 
 use super::alloy::Alloy;
@@ -93,12 +92,13 @@ impl Lattice {
     }
 
     pub fn apply_mask(mut self, mut mask: Mask) -> Self {
+        let mut rng = thread_rng();
         let site_mask: Vec<_> = self
             .sites
             .iter()
             .map(|s| {
                 let (x, y, _) = s.position();
-                mask.keep(x, y)
+                mask.keep(x, y, &mut rng)
             })
             .collect();
         let mut counter = 0;
@@ -129,9 +129,7 @@ impl Lattice {
     }
 
     pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
-        let mut items = target.choices();
         let mut rng = thread_rng();
-        let weigthed_choice = WeightedChoice::new(&mut items);
         self.sites = self
             .sites
             .into_iter()
@@ -139,7 +137,7 @@ impl Lattice {
                 if site.kind() != source {
                     site
                 } else {
-                    site.with_kind(weigthed_choice.ind_sample(&mut rng))
+                    site.with_kind(target.pick(&mut rng))
                 }
             })
             .collect();

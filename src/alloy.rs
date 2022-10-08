@@ -1,26 +1,23 @@
 // Let's abstract an alloy
 
-use rand::distributions::Weighted;
+use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
 
 #[derive(Debug)]
 pub struct Alloy {
-    items: Vec<Weighted<String>>,
+    kinds: Vec<String>,
+    weights: WeightedIndex<u32>,
 }
 
 impl Alloy {
     pub fn new(kinds: Vec<&str>, ratios: Vec<u32>) -> Self {
-        let items: Vec<_> = kinds
-            .into_iter()
-            .zip(ratios.into_iter())
-            .map(|(item, weight)| Weighted {
-                weight,
-                item: item.to_owned(),
-            })
-            .collect();
-        Self { items }
+        debug_assert!(kinds.len() == ratios.len());
+        Self {
+            kinds: kinds.into_iter().map(|s| s.to_owned()).collect(),
+            weights: WeightedIndex::new(&ratios).unwrap(),
+        }
     }
 
-    pub fn choices(self) -> Vec<Weighted<String>> {
-        self.items
+    pub fn pick<R: Rng + ?Sized>(&self, rng: &mut R) -> String {
+        self.kinds[self.weights.sample(rng)].clone()
     }
 }
