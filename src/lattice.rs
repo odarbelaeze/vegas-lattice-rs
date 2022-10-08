@@ -73,15 +73,13 @@ impl Lattice {
         let n_sites = self.sites.len();
 
         self.sites = (0..amount)
-            .map(|i| repeat(i).take(n_sites))
-            .flatten()
+            .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.sites().iter().cycle())
             .map(|(index, site)| site.move_along(axis, (index as f64) * size))
             .collect();
 
         self.vertices = (0..amount)
-            .map(|i| repeat(i).take(n_sites))
-            .flatten()
+            .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.vertices.iter().cycle())
             .map(|(index, vertex)| vertex.move_along(axis, index, n_sites, amount))
             .collect();

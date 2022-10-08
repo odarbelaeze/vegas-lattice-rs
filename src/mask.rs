@@ -17,7 +17,7 @@ pub struct Mask {
 }
 
 impl Mask {
-    pub fn new(path: &Path, ppu: f64) -> Result<Self, Box<Error>> {
+    pub fn new(path: &Path, ppu: f64) -> Result<Self, Box<dyn Error>> {
         let img = image::open(path)?;
         Ok(Self {
             image: Box::new(img),

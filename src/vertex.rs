@@ -21,11 +21,8 @@ impl FromStr for Vertex {
 }
 
 impl Tagged for Vertex {
-    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
-        match self.tags {
-            Some(ref tags) => Some(&tags),
-            None => None,
-        }
+    fn tags(&self) -> Option<&Vec<String>> {
+        self.tags.as_ref()
     }
 }
 

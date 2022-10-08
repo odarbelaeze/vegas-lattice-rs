@@ -36,15 +36,15 @@ impl LatticeFormatter {
     {
         match (first, self.above_max_indent()) {
             (true, false) => {
-                try!(writer.write_all(b"\n"));
+                writer.write_all(b"\n")?;
                 indent(writer, self.current_indent, self.indent)
             }
             (false, false) => {
-                try!(writer.write_all(b",\n"));
+                writer.write_all(b",\n")?;
                 indent(writer, self.current_indent, self.indent)
             }
             (false, true) => {
-                try!(writer.write_all(b", "));
+                writer.write_all(b", ")?;
                 Ok(())
             }
             (true, true) => Ok(()),
@@ -75,8 +75,8 @@ impl Formatter for LatticeFormatter {
         W: io::Write,
     {
         if !self.above_max_indent() && self.has_value {
-            try!(writer.write_all(b"\n"));
-            try!(indent(writer, self.current_indent - 1, self.indent));
+            writer.write_all(b"\n")?;
+            indent(writer, self.current_indent - 1, self.indent)?;
         }
         self.current_indent -= 1;
         writer.write_all(b"]")
@@ -115,8 +115,8 @@ impl Formatter for LatticeFormatter {
         W: io::Write,
     {
         if !self.above_max_indent() && self.has_value {
-            try!(writer.write_all(b"\n"));
-            try!(indent(writer, self.current_indent - 1, self.indent));
+            writer.write_all(b"\n")?;
+            indent(writer, self.current_indent - 1, self.indent)?;
         }
         self.current_indent -= 1;
         writer.write_all(b"}")
@@ -155,7 +155,7 @@ where
     T: ser::Serialize,
 {
     let mut ser = Serializer::with_formatter(writer, LatticeFormatter::new());
-    try!(value.serialize(&mut ser));
+    value.serialize(&mut ser)?;
     Ok(())
 }
 
@@ -165,7 +165,7 @@ where
     T: ser::Serialize,
 {
     let mut writer = Vec::with_capacity(128);
-    try!(to_writer_lattice(&mut writer, value));
+    to_writer_lattice(&mut writer, value)?;
     Ok(writer)
 }
 
@@ -174,7 +174,7 @@ pub fn to_string_lattice<T: ?Sized>(value: &T) -> Result<String>
 where
     T: ser::Serialize,
 {
-    let vec = try!(to_vec_lattice(value));
+    let vec = to_vec_lattice(value)?;
     let string = unsafe {
         // We do not emit invalid UTF-8.
         String::from_utf8_unchecked(vec)
@@ -187,7 +187,7 @@ where
     W: io::Write,
 {
     for _ in 0..n {
-        try!(wr.write_all(s));
+        wr.write_all(s)?;
     }
 
     Ok(())

@@ -30,7 +30,7 @@ Options:
     --version       Show version and exit.
 ";
 
-fn read(input: &str) -> Result<Lattice, Box<Error>> {
+fn read(input: &str) -> Result<Lattice, Box<dyn Error>> {
     let mut data = String::new();
     if !input.is_empty() {
         let mut file = File::open(input)?;
@@ -50,9 +50,9 @@ fn write_pretty(lattice: Lattice) {
     println!("{}", io::to_string_lattice(&lattice).unwrap());
 }
 
-fn check_error(res: Result<(), Box<Error>>) {
+fn check_error(res: Result<(), Box<dyn Error>>) {
     if let Err(e) = res {
-        eprintln!("Error: {}", e.description());
+        eprintln!("Error: {}", e);
         if let Some(source) = e.source() {
             eprintln!("Cause: {}", source);
         }
@@ -61,19 +61,19 @@ fn check_error(res: Result<(), Box<Error>>) {
 
 // Commands over here
 
-fn check(args: ArgvMap) -> Result<(), Box<Error>> {
+fn check(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let lattice = read(args.get_str("<input>"))?;
     write(lattice);
     Ok(())
 }
 
-fn pretty(args: ArgvMap) -> Result<(), Box<Error>> {
+fn pretty(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let lattice = read(args.get_str("<input>"))?;
     write_pretty(lattice);
     Ok(())
 }
 
-fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
+fn drop(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let mut lattice = read(args.get_str("<input>"))?;
     for (key, axis) in Axis::map(Some("-".to_string())) {
         if args.get_bool(&key) {
@@ -84,7 +84,7 @@ fn drop(args: ArgvMap) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
+fn expand(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let map = Axis::map(Some("--".to_string()));
     let mut lattice = read(args.get_str("<input>"))?;
     for (flag, axis) in map.into_iter() {
@@ -98,7 +98,7 @@ fn expand(args: ArgvMap) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
+fn alloy(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let source = args.get_str("<source>");
     let kinds = args.get_vec("<target>");
     let ratios = args
@@ -113,17 +113,17 @@ fn alloy(args: ArgvMap) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-fn mask(args: ArgvMap) -> Result<(), Box<Error>> {
+fn mask(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let path = args.get_str("<mask>");
     let ppu: f64 = args.get_str("--ppu").parse()?;
-    let mask = Mask::new(&Path::new(path), ppu)?;
+    let mask = Mask::new(Path::new(path), ppu)?;
     let mut lattice = read(args.get_str("<input>"))?;
     lattice = lattice.apply_mask(mask);
     write(lattice);
     Ok(())
 }
 
-fn into(args: ArgvMap) -> Result<(), Box<Error>> {
+fn into(args: ArgvMap) -> Result<(), Box<dyn Error>> {
     let lattice = read(args.get_str("<input>"))?;
     if args.get_bool("tsv") {
         for site in lattice.sites().iter() {
