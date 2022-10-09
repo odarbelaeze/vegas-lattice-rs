@@ -1,9 +1,8 @@
-extern crate serde_json;
-
 use std::str::FromStr;
 
 use super::util::{python_mod, Axis, Tagged};
 use serde_json::Error as SerdeError;
+use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {
@@ -21,11 +20,8 @@ impl FromStr for Vertex {
 }
 
 impl Tagged for Vertex {
-    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
-        match self.tags {
-            Some(ref tags) => Some(&tags),
-            None => None,
-        }
+    fn tags(&self) -> Option<&Vec<String>> {
+        self.tags.as_ref()
     }
 }
 

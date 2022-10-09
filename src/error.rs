@@ -21,7 +21,7 @@ impl StdError for LatticeError {
         }
     }
 
-    fn cause(&self) -> Option<&StdError> {
+    fn cause(&self) -> Option<&dyn StdError> {
         match self {
             LatticeError::IoError(err) => Some(err),
             LatticeError::JsonParseError(err) => Some(err),

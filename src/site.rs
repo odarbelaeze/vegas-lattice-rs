@@ -1,9 +1,8 @@
-extern crate serde_json;
-
 use std::str::FromStr;
 
 use super::util::{Axis, Tagged};
 use serde_json::Error as SerdeError;
+use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
@@ -20,11 +19,8 @@ impl FromStr for Site {
 }
 
 impl Tagged for Site {
-    fn tags<'a>(&'a self) -> Option<&'a Vec<String>> {
-        match self.tags {
-            Some(ref tags) => Some(&tags),
-            None => None,
-        }
+    fn tags(&self) -> Option<&Vec<String>> {
+        self.tags.as_ref()
     }
 }
 

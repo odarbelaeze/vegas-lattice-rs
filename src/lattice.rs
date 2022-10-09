@@ -1,9 +1,6 @@
-extern crate serde_json;
-
 use std::iter::repeat;
 use std::str::FromStr;
 
-use rand::distributions::{IndependentSample, WeightedChoice};
 use rand::thread_rng;
 
 use super::alloy::Alloy;
@@ -12,6 +9,7 @@ use super::mask::Mask;
 use super::site::Site;
 use super::util::Axis;
 use super::vertex::Vertex;
+use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
@@ -73,15 +71,13 @@ impl Lattice {
         let n_sites = self.sites.len();
 
         self.sites = (0..amount)
-            .map(|i| repeat(i).take(n_sites))
-            .flatten()
+            .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.sites().iter().cycle())
             .map(|(index, site)| site.move_along(axis, (index as f64) * size))
             .collect();
 
         self.vertices = (0..amount)
-            .map(|i| repeat(i).take(n_sites))
-            .flatten()
+            .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.vertices.iter().cycle())
             .map(|(index, vertex)| vertex.move_along(axis, index, n_sites, amount))
             .collect();
@@ -96,12 +92,13 @@ impl Lattice {
     }
 
     pub fn apply_mask(mut self, mut mask: Mask) -> Self {
+        let mut rng = thread_rng();
         let site_mask: Vec<_> = self
             .sites
             .iter()
             .map(|s| {
                 let (x, y, _) = s.position();
-                mask.keep(x, y)
+                mask.keep(x, y, &mut rng)
             })
             .collect();
         let mut counter = 0;
@@ -132,9 +129,7 @@ impl Lattice {
     }
 
     pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
-        let mut items = target.choices();
         let mut rng = thread_rng();
-        let weigthed_choice = WeightedChoice::new(&mut items);
         self.sites = self
             .sites
             .into_iter()
@@ -142,7 +137,7 @@ impl Lattice {
                 if site.kind() != source {
                     site
                 } else {
-                    site.with_kind(weigthed_choice.ind_sample(&mut rng))
+                    site.with_kind(target.pick(&mut rng))
                 }
             })
             .collect();
