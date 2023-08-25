@@ -12,7 +12,6 @@ categories = ["command-line-utilities", "science", "simulation"]
 license-file = "LICENSE.txt"
 
 [badges]
-travis-ci = { repository = "odarbelaeze/vegas-lattice-rs", branch = "master" }
 is-it-maintained-issue-resolution = { repository = "odarbelaeze/vegas-lattice-rs" }
 is-it-maintained-open-issues = { repository = "odarbelaeze/vegas-lattice-rs" }
 maintenance = { status = "actively-developed" }
@@ -20,6 +19,6 @@ maintenance = { status = "actively-developed" }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-docopt = "1.1.1"
-image = "0.24.4"
-rand = "0.8.5"
+docopt = "1.1"
+image = "0.24"
+rand = "0.8"

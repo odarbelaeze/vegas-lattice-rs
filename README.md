@@ -1,7 +1,7 @@
 # vegas-lattice-rs
 
 ![Crates.io](https://img.shields.io/crates/v/vegas-lattice.svg)
-[![Build Status](https://travis-ci.org/odarbelaeze/vegas-lattice-rs.svg?branch=master)](https://travis-ci.org/odarbelaeze/vegas-lattice-rs)
+![Build Status](https://github.com/odarbelaeze/vegas-lattice-rs/actions/workflows/rust.yml/badge.svg?branch=main)
 [![DOI](https://zenodo.org/badge/90330925.svg)](https://zenodo.org/badge/latestdoi/90330925)
 
 A little tool to build lattices and samples out of patterns written in
@@ -60,9 +60,7 @@ standard io.
 For more explanation in how the different commands work, take a look at the
 [wiki] page.
 
-
 [crates.io]: https://crates.io/
 [rust]: https://www.rust-lang.org/en-US/
 [wiki]: https://github.com/odarbelaeze/vegas-lattice-rs/wiki
 [releases]: https://github.com/odarbelaeze/vegas-lattice-rs/releases
-

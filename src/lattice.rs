@@ -9,7 +9,7 @@ use super::mask::Mask;
 use super::site::Site;
 use super::util::Axis;
 use super::vertex::Vertex;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
@@ -50,11 +50,7 @@ impl Lattice {
     }
 
     pub fn drop(mut self, axis: Axis) -> Self {
-        self.vertices = self
-            .vertices
-            .into_iter()
-            .filter(|v| v.delta_along(axis) == 0)
-            .collect();
+        self.vertices.retain(|v| v.delta_along(axis) == 0);
         self
     }
 
