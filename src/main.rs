@@ -1,4 +1,5 @@
 extern crate docopt;
+extern crate serde;
 extern crate serde_json;
 extern crate vegas_lattice;
 
@@ -7,7 +8,8 @@ use std::fs::File;
 use std::io::{stdin, Read};
 use std::path::Path;
 
-use docopt::{ArgvMap, Docopt};
+use docopt::Docopt;
+use serde::Deserialize;
 use vegas_lattice::{io, Alloy, Axis, Lattice, Mask};
 
 const USAGE: &str = "
@@ -17,7 +19,7 @@ Usage:
     vegas-lattice check [<input>]
     vegas-lattice pretty [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
-    vegas-lattice expand [--x=<x> --y=<y> --z=<z>] [<input>]
+    vegas-lattice expand [--along-x=<x> --along-y=<y> --along-z=<z>] [<input>]
     vegas-lattice alloy <source> (<target> <ratio>)... [<input>]
     vegas-lattice mask [--ppu=<ppu>] <mask> [<input>]
     vegas-lattice into (xyz|tsv) [<input>]
@@ -29,6 +31,31 @@ Options:
     -h --help       Show this message.
     --version       Show version and exit.
 ";
+
+#[derive(Debug, Deserialize)]
+struct Args {
+    arg_input: String,
+    arg_source: String,
+    arg_target: Vec<String>,
+    arg_ratio: Vec<u32>,
+    arg_mask: String,
+    flag_along_x: Option<usize>,
+    flag_along_y: Option<usize>,
+    flag_along_z: Option<usize>,
+    flag_x: bool,
+    flag_y: bool,
+    flag_z: bool,
+    flag_ppu: f64,
+    cmd_check: bool,
+    cmd_pretty: bool,
+    cmd_drop: bool,
+    cmd_expand: bool,
+    cmd_alloy: bool,
+    cmd_mask: bool,
+    cmd_into: bool,
+    cmd_xyz: bool,
+    cmd_tsv: bool,
+}
 
 fn read(input: &str) -> Result<Lattice, Box<dyn Error>> {
     let mut data = String::new();
@@ -61,76 +88,77 @@ fn check_error(res: Result<(), Box<dyn Error>>) {
 
 // Commands over here
 
-fn check(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let lattice = read(args.get_str("<input>"))?;
+fn check(args: Args) -> Result<(), Box<dyn Error>> {
+    let lattice = read(&args.arg_input)?;
     write(lattice);
     Ok(())
 }
 
-fn pretty(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let lattice = read(args.get_str("<input>"))?;
+fn pretty(args: Args) -> Result<(), Box<dyn Error>> {
+    let lattice = read(&args.arg_input)?;
     write_pretty(lattice);
     Ok(())
 }
 
-fn drop(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let mut lattice = read(args.get_str("<input>"))?;
-    for (key, axis) in Axis::map(Some("-".to_string())) {
-        if args.get_bool(&key) {
-            lattice = lattice.drop(axis);
-        }
+fn drop(args: Args) -> Result<(), Box<dyn Error>> {
+    let mut lattice = read(&args.arg_input)?;
+    if args.flag_x {
+        lattice = lattice.drop(Axis::X);
+    }
+    if args.flag_y {
+        lattice = lattice.drop(Axis::Y);
+    }
+    if args.flag_z {
+        lattice = lattice.drop(Axis::Z);
     }
     write(lattice);
     Ok(())
 }
 
-fn expand(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let map = Axis::map(Some("--".to_string()));
-    let mut lattice = read(args.get_str("<input>"))?;
-    for (flag, axis) in map.into_iter() {
-        let string_value = args.get_str(&flag);
-        if !string_value.is_empty() {
-            let size: usize = string_value.parse()?;
-            lattice = lattice.expand_along(axis, size);
-        }
+fn expand(args: Args) -> Result<(), Box<dyn Error>> {
+    let mut lattice = read(&args.arg_input)?;
+    if let Some(size) = args.flag_along_x {
+        lattice = lattice.expand_along(Axis::X, size);
+    }
+    if let Some(size) = args.flag_along_y {
+        lattice = lattice.expand_along(Axis::Y, size);
+    }
+    if let Some(size) = args.flag_along_z {
+        lattice = lattice.expand_along(Axis::Z, size);
     }
     write(lattice);
     Ok(())
 }
 
-fn alloy(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let source = args.get_str("<source>");
-    let kinds = args.get_vec("<target>");
-    let ratios = args
-        .get_vec("<ratio>")
-        .into_iter()
-        .map(|r| r.parse())
-        .collect::<Result<Vec<u32>, _>>()?;
+fn alloy(args: Args) -> Result<(), Box<dyn Error>> {
+    let source = args.arg_source;
+    let kinds = args.arg_target.iter().map(|s| s.as_str()).collect();
+    let ratios = args.arg_ratio;
     let alloy = Alloy::new(kinds, ratios);
-    let mut lattice = read(args.get_str("<input>"))?;
-    lattice = lattice.alloy_sites(source, alloy);
+    let mut lattice = read(&args.arg_input)?;
+    lattice = lattice.alloy_sites(&source, alloy);
     write(lattice);
     Ok(())
 }
 
-fn mask(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let path = args.get_str("<mask>");
-    let ppu: f64 = args.get_str("--ppu").parse()?;
-    let mask = Mask::new(Path::new(path), ppu)?;
-    let mut lattice = read(args.get_str("<input>"))?;
+fn mask(args: Args) -> Result<(), Box<dyn Error>> {
+    let path = args.arg_mask;
+    let ppu: f64 = args.flag_ppu;
+    let mask = Mask::new(Path::new(&path), ppu)?;
+    let mut lattice = read(&args.arg_input)?;
     lattice = lattice.apply_mask(mask);
     write(lattice);
     Ok(())
 }
 
-fn into(args: ArgvMap) -> Result<(), Box<dyn Error>> {
-    let lattice = read(args.get_str("<input>"))?;
-    if args.get_bool("tsv") {
+fn into(args: Args) -> Result<(), Box<dyn Error>> {
+    let lattice = read(&args.arg_input)?;
+    if args.cmd_tsv {
         for site in lattice.sites().iter() {
             let (x, y, z) = site.position();
             println!("{}\t{}\t{}\t{}", x, y, z, site.kind())
         }
-    } else if args.get_bool("xyz") {
+    } else if args.cmd_xyz {
         println!("{}\n", lattice.sites().len());
         for site in lattice.sites().iter() {
             let (x, y, z) = site.position();
@@ -141,23 +169,23 @@ fn into(args: ArgvMap) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() {
-    let args = Docopt::new(USAGE)
-        .and_then(|doc| doc.version(Some("0.0.1".to_string())).parse())
+    let args: Args = Docopt::new(USAGE)
+        .and_then(|doc| doc.version(Some("0.0.1".to_string())).deserialize())
         .unwrap_or_else(|e| e.exit());
 
-    if args.get_bool("check") {
+    if args.cmd_check {
         check_error(check(args));
-    } else if args.get_bool("pretty") {
+    } else if args.cmd_pretty {
         check_error(pretty(args));
-    } else if args.get_bool("drop") {
+    } else if args.cmd_drop {
         check_error(drop(args));
-    } else if args.get_bool("alloy") {
+    } else if args.cmd_alloy {
         check_error(alloy(args));
-    } else if args.get_bool("expand") {
+    } else if args.cmd_expand {
         check_error(expand(args));
-    } else if args.get_bool("mask") {
+    } else if args.cmd_mask {
         check_error(mask(args));
-    } else if args.get_bool("into") {
+    } else if args.cmd_into {
         check_error(into(args));
     } else {
         println!("{:?}", args);
