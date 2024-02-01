@@ -1,3 +1,4 @@
+//! Lattice data structure
 use std::iter::repeat;
 use std::str::FromStr;
 
@@ -11,6 +12,7 @@ use super::util::Axis;
 use super::vertex::Vertex;
 use serde::{Deserialize, Serialize};
 
+/// A lattice is a collection of sites and vertices
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
     size: (f64, f64, f64),
@@ -19,18 +21,22 @@ pub struct Lattice {
 }
 
 impl Lattice {
+    /// Get the size of the lattice
     pub fn size(&self) -> (f64, f64, f64) {
         self.size
     }
 
+    /// Get the sites of the lattice
     pub fn sites(&self) -> &[Site] {
         &self.sites
     }
 
+    /// Get the vertices of the lattice
     pub fn vertices(&self) -> &[Vertex] {
         &self.vertices
     }
 
+    /// Checks if the vertices of the lattice don't exceed the number of sites
     fn are_vertices_consistent(&self) -> bool {
         self.vertices
             .iter()
@@ -39,6 +45,7 @@ impl Lattice {
             .all(|id| id < self.sites.len())
     }
 
+    /// Validates the lattice
     pub fn validate(self) -> Result<Self, LatticeError> {
         if !self.are_vertices_consistent() {
             return Err(LatticeError::InconsistentVertices);
@@ -49,11 +56,13 @@ impl Lattice {
         Ok(self)
     }
 
+    /// Drops all the vertices that are periodic along the given axis
     pub fn drop(mut self, axis: Axis) -> Self {
         self.vertices.retain(|v| v.delta_along(axis) == 0);
         self
     }
 
+    /// Returns the size of the lattice along the given axis
     pub fn size_along(&self, axis: Axis) -> f64 {
         match axis {
             Axis::X => self.size.0,
@@ -62,6 +71,7 @@ impl Lattice {
         }
     }
 
+    /// Expands the lattice along the given axis
     pub fn expand_along(mut self, axis: Axis, amount: usize) -> Self {
         let size = self.size_along(axis);
         let n_sites = self.sites.len();
@@ -87,6 +97,9 @@ impl Lattice {
         self
     }
 
+    /// Removes sites from the lattice according to the given mask
+    ///
+    /// TODO: This only removes points in the xy plane, and it should be generalized
     pub fn apply_mask(mut self, mut mask: Mask) -> Self {
         let mut rng = thread_rng();
         let site_mask: Vec<_> = self
@@ -124,6 +137,7 @@ impl Lattice {
         self
     }
 
+    /// Replaces the sites labeled as `source` with sites in the `target` alloy
     pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
         let mut rng = thread_rng();
         self.sites = self

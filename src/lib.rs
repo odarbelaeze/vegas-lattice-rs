@@ -1,3 +1,8 @@
+//! # Intro
+//!
+//! This is a library for generating and manipulating 3D lattices.
+//!
+
 extern crate rand;
 extern crate serde;
 extern crate serde_json;
@@ -15,4 +20,6 @@ mod vertex;
 pub use alloy::Alloy;
 pub use lattice::Lattice;
 pub use mask::Mask;
-pub use util::Axis;
+pub use site::Site;
+pub use util::{Axis, Tagged};
+pub use vertex::Vertex;

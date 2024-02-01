@@ -1,7 +1,8 @@
-// Let's abstract an alloy
+//! Let's abstract an alloy
 
 use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
 
+/// An alloy is a collection of kinds of atoms and their ratios
 #[derive(Debug)]
 pub struct Alloy {
     kinds: Vec<String>,

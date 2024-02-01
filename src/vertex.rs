@@ -4,6 +4,7 @@ use super::util::{python_mod, Axis, Tagged};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 
+/// Represents a vertex in a lattice
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {
     source: usize,
@@ -26,14 +27,17 @@ impl Tagged for Vertex {
 }
 
 impl Vertex {
+    /// Returns the `source` of the vertex
     pub fn source(&self) -> usize {
         self.source
     }
 
+    /// Returns the `target` of the vertex
     pub fn target(&self) -> usize {
         self.target
     }
 
+    /// Returns the `delta` of the vertex alogn a given axis
     pub fn delta_along(&self, axis: Axis) -> i32 {
         match axis {
             Axis::X => self.delta.0,
@@ -42,6 +46,7 @@ impl Vertex {
         }
     }
 
+    /// Returns a new vertex moved a given distance along a given axis
     pub fn move_along(&self, axis: Axis, index: usize, nsites: usize, limit: usize) -> Self {
         let mut vertex = self.clone();
         let distance = index * nsites;
@@ -60,10 +65,12 @@ impl Vertex {
         vertex
     }
 
-    pub fn reindex(mut self, index: &[usize]) -> Self {
-        self.source = index[self.source];
-        self.target = index[self.target];
-        self
+    /// Returns a new vertex with the same properties but a re-indexed source and target
+    pub fn reindex(&self, index: &[usize]) -> Self {
+        let mut vertex = self.clone();
+        vertex.source = index[self.source];
+        vertex.target = index[self.target];
+        vertex
     }
 }
 

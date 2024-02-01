@@ -1,8 +1,11 @@
+//! Error handling for the lattice crate
+
 use serde_json::Error as SerdeError;
 use std::error::Error as StdError;
 use std::fmt;
 use std::io::Error as IoError;
 
+/// Error type for the lattice crate
 #[derive(Debug)]
 pub enum LatticeError {
     IoError(IoError),

@@ -4,6 +4,7 @@ use super::util::{Axis, Tagged};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 
+/// Represetns a site in a lattice
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
     kind: String,
@@ -25,14 +26,17 @@ impl Tagged for Site {
 }
 
 impl Site {
+    /// Return the position of the site
     pub fn position(&self) -> (f64, f64, f64) {
         self.position
     }
 
+    /// Return the kind of the site
     pub fn kind(&self) -> String {
         self.kind.clone()
     }
 
+    /// Returns a new site moved a given disntance along a given axis
     pub fn move_along(&self, axis: Axis, distance: f64) -> Self {
         let mut site = self.clone();
         match axis {
@@ -43,9 +47,11 @@ impl Site {
         site
     }
 
-    pub fn with_kind(mut self, kind: String) -> Self {
-        self.kind = kind;
-        self
+    /// Returns a new site with the same properties but a different kind
+    pub fn with_kind(&self, kind: String) -> Self {
+        let mut site = self.clone();
+        site.kind = kind;
+        site
     }
 }
 

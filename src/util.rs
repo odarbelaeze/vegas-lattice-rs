@@ -1,13 +1,18 @@
 //! General utilities that have nothing to do with lattices
 
+/// Represents a 3D axis
 #[derive(Debug, Clone, Copy)]
 pub enum Axis {
+    /// The _x_ axis
     X,
+    /// The _y_ axis
     Y,
+    /// The _z_ axis
     Z,
 }
 
 impl Axis {
+    /// Returns a vector of tuples of axis names and their corresponding `Axis` enum
     pub fn map(prefix: Option<String>) -> Vec<(String, Axis)> {
         let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
         match prefix {
@@ -31,8 +36,11 @@ pub fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
     }
 }
 
+/// A trait for tagged objects
 pub trait Tagged {
+    /// Returns the tags of the object
     fn tags(&self) -> Option<&Vec<String>>;
+    /// Returns `true` if the object has the given tag
     fn has_tag(&self, tag: String) -> bool {
         match self.tags() {
             None => false,
