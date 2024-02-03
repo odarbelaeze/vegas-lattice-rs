@@ -71,8 +71,8 @@ impl Vertex {
     }
 
     /// Chagges the tags of the vertex
-    pub fn with_tags(mut self, tags: Vec<String>) -> Self {
-        self.tags = Some(tags);
+    pub fn with_tags(mut self, tags: Vec<&str>) -> Self {
+        self.tags = Some(tags.iter().map(|s| s.to_string()).collect());
         self
     }
 
@@ -171,7 +171,7 @@ mod test {
 
     #[test]
     fn vertex_can_be_tagged() {
-        let vertex = Vertex::new(0, 1, (0, 0, 1)).with_tags(vec!["core".to_string()]);
+        let vertex = Vertex::new(0, 1, (0, 0, 1)).with_tags(vec!["core"]);
         assert_eq!(vertex.tags, Some(vec!["core".to_string()]));
     }
 

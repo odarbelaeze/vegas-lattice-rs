@@ -12,7 +12,11 @@ use super::util::Axis;
 use super::vertex::Vertex;
 use serde::{Deserialize, Serialize};
 
-/// A lattice is a collection of sites and vertices
+/// A lattice is a collection of sites and vertices.
+///
+/// For now it only supports rectangular lattices. This is Orthorombic, Tetragonal and Cubic
+/// Bravais lattices. We assume the lattice vectors are aligned with the cartesian axes. While you
+/// can choose the lattice parameters _a_, _b_, and _c_ to be different.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
     size: (f64, f64, f64),
@@ -21,6 +25,46 @@ pub struct Lattice {
 }
 
 impl Lattice {
+    /// Create a new lattice with the given size
+    pub fn new(size: (f64, f64, f64)) -> Self {
+        Lattice {
+            size,
+            sites: Vec::new(),
+            vertices: Vec::new(),
+        }
+    }
+
+    /// Create a simple cubic lattice with the given size _a_
+    pub fn sc(a: f64) -> Self {
+        let sites = vec![Site::new("A")];
+        let vertices = vec![
+            Vertex::new(0, 0, (1, 0, 0)),
+            Vertex::new(0, 0, (0, 1, 0)),
+            Vertex::new(0, 0, (0, 0, 1)),
+        ];
+        Lattice {
+            size: (a, a, a),
+            sites,
+            vertices,
+        }
+    }
+
+    /// Create a body centered cubic lattice with the given size _a_
+    pub fn bcc(a: f64) -> Self {
+        let sites = vec![Site::new("A"), Site::new("B")];
+        let vertices = vec![
+            Vertex::new(0, 1, (0, 0, 0)),
+            Vertex::new(0, 1, (0, -1, 0)),
+            Vertex::new(0, 1, (-1, 0, 0)),
+            Vertex::new(0, 1, (-1, -1, 0)),
+        ];
+        Lattice {
+            size: (a, a, a),
+            sites,
+            vertices,
+        }
+    }
+
     /// Get the size of the lattice
     pub fn size(&self) -> (f64, f64, f64) {
         self.size
@@ -34,6 +78,33 @@ impl Lattice {
     /// Get the vertices of the lattice
     pub fn vertices(&self) -> &[Vertex] {
         &self.vertices
+    }
+
+    /// Returns the size of the lattice along the given axis
+    pub fn size_along(&self, axis: Axis) -> f64 {
+        match axis {
+            Axis::X => self.size.0,
+            Axis::Y => self.size.1,
+            Axis::Z => self.size.2,
+        }
+    }
+
+    /// Changes the size of the lattice
+    pub fn with_size(mut self, size: (f64, f64, f64)) -> Self {
+        self.size = size;
+        self
+    }
+
+    /// Changes the sites of the lattice
+    pub fn with_sites(mut self, sites: Vec<Site>) -> Self {
+        self.sites = sites;
+        self
+    }
+
+    /// Changes the vertices of the lattice
+    pub fn with_vertices(mut self, vertices: Vec<Vertex>) -> Self {
+        self.vertices = vertices;
+        self
     }
 
     fn are_vertices_consistent(&self) -> bool {
@@ -59,15 +130,6 @@ impl Lattice {
     pub fn drop(mut self, axis: Axis) -> Self {
         self.vertices.retain(|v| v.delta_along(axis) == 0);
         self
-    }
-
-    /// Returns the size of the lattice along the given axis
-    pub fn size_along(&self, axis: Axis) -> f64 {
-        match axis {
-            Axis::X => self.size.0,
-            Axis::Y => self.size.1,
-            Axis::Z => self.size.2,
-        }
     }
 
     /// Expands the lattice along the given axis
@@ -164,70 +226,29 @@ impl FromStr for Lattice {
 
 #[cfg(test)]
 mod test {
-    use super::{Axis, Lattice, Vertex};
-    use util::Tagged;
-
-    #[test]
-    fn vertex_will_take_optional_tags() {
-        let data = r#"
-            {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-        "#;
-        let site_result: Result<Vertex, _> = data.parse();
-        assert!(site_result.is_ok());
-        assert_eq!(
-            site_result.unwrap().tags(),
-            Some(&vec!["core".to_string(), "inner".to_string()])
-        );
-    }
+    use crate::{Axis, Lattice, Site, Vertex};
 
     #[test]
     fn drop_example() {
-        let data = r#"
-            {
-                "size": [1, 1, 1],
-                "sites": [
-                    {"kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-                ]
-            }
-        "#;
-        let lattice: Lattice = data.parse().unwrap();
+        let lattice = Lattice::new((1.0, 1.0, 1.0))
+            .with_sites(vec![Site::new("Fe")])
+            .with_vertices(vec![Vertex::new(0, 0, (0, 0, 1))]);
         let lattice = lattice.drop(Axis::X);
         assert!(lattice.vertices.len() == 1);
     }
 
     #[test]
     fn drop_example_actually_dropping() {
-        let data = r#"
-            {
-                "size": [1, 1, 1],
-                "sites": [
-                    {"kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
-                ]
-            }
-        "#;
-        let lattice: Lattice = data.parse().unwrap();
+        let lattice = Lattice::new((1.0, 1.0, 1.0))
+            .with_sites(vec![Site::new("Fe")])
+            .with_vertices(vec![Vertex::new(0, 0, (0, 0, 1))]);
         let lattice = lattice.drop(Axis::Z);
         assert!(lattice.vertices.is_empty());
     }
 
     #[test]
     fn single_lattice_expansion_1d() {
-        let data = r#"
-            {
-                "size": [1, 1, 1],
-                "sites": [
-                    {"kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": []
-            }
-        "#;
-        let lattice: Lattice = data.parse().unwrap();
+        let lattice = Lattice::new((1.0, 1.0, 1.0)).with_sites(vec![Site::new("Fe")]);
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 2);
         assert!((output.sites[1].position().0 - 1.0).abs() < 1e-10);
@@ -235,16 +256,7 @@ mod test {
 
     #[test]
     fn double_lattice_expansion_1d() {
-        let data = r#"
-            {
-                "size": [1, 1, 1],
-                "sites": [
-                    {"kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": []
-            }
-        "#;
-        let lattice: Lattice = data.parse().unwrap();
+        let lattice = Lattice::new((1.0, 1.0, 1.0)).with_sites(vec![Site::new("Fe")]);
         let lattice = lattice.expand_along(Axis::X, 2);
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.sites.len(), 4);
@@ -255,18 +267,9 @@ mod test {
 
     #[test]
     fn single_lattice_expansion_1d_vertices() {
-        let data = r#"
-            {
-                "size": [1, 1, 1],
-                "sites": [
-                    {"kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 0, "delta": [1, 0, 0]}
-                ]
-            }
-        "#;
-        let lattice: Lattice = data.parse().unwrap();
+        let lattice = Lattice::new((1.0, 1.0, 1.0))
+            .with_sites(vec![Site::new("Fe")])
+            .with_vertices(vec![Vertex::new(0, 0, (1, 0, 0))]);
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.vertices.len(), 2);
         assert_eq!(output.vertices[0].source(), 0);
@@ -279,18 +282,9 @@ mod test {
 
     #[test]
     fn single_lattice_expansion_1d_negative_vertices() {
-        let data = r#"
-            {
-                "size": [1, 1, 1],
-                "sites": [
-                    {"kind": "Fe", "position": [0, 0, 0]}
-                ],
-                "vertices": [
-                    {"source": 0, "target": 0, "delta": [-1, 0, 0]}
-                ]
-            }
-        "#;
-        let lattice: Lattice = data.parse().unwrap();
+        let lattice = Lattice::new((1.0, 1.0, 1.0))
+            .with_sites(vec![Site::new("Fe")])
+            .with_vertices(vec![Vertex::new(0, 0, (-1, 0, 0))]);
         let output = lattice.expand_along(Axis::X, 2);
         assert_eq!(output.vertices.len(), 2);
         assert_eq!(output.vertices[0].source(), 0);
@@ -299,5 +293,29 @@ mod test {
         assert_eq!(output.vertices[1].source(), 1);
         assert_eq!(output.vertices[1].target(), 0);
         assert_eq!(output.vertices[1].delta_along(Axis::X), 0);
+    }
+
+    #[test]
+    fn test_lattice_can_be_read_from_string() {
+        let lattice = r#"{
+            "size": [1.0, 1.0, 1.0],
+            "sites": [
+                {
+                    "kind": "Fe",
+                    "position": [0.0, 0.0, 0.0]
+                }
+            ],
+            "vertices": [
+                {
+                    "source": 0,
+                    "target": 0,
+                    "delta": [0, 0, 1]
+                }
+            ]
+        }"#;
+        let lattice: Lattice = lattice.parse().unwrap();
+        assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+        assert_eq!(lattice.sites().len(), 1);
+        assert_eq!(lattice.vertices().len(), 1);
     }
 }

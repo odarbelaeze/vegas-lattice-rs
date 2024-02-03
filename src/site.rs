@@ -31,9 +31,9 @@ impl Tagged for Site {
 
 impl Site {
     /// Create a new site with a given kind located at the origin
-    pub fn new(kind: String) -> Self {
+    pub fn new(kind: &str) -> Self {
         Site {
-            kind,
+            kind: kind.to_string(),
             position: (0.0, 0.0, 0.0),
             tags: None,
         }
@@ -72,8 +72,8 @@ impl Site {
     }
 
     /// Adds tags to the site
-    pub fn with_tags(mut self, tags: Vec<String>) -> Self {
-        self.tags = Some(tags);
+    pub fn with_tags(mut self, tags: Vec<&str>) -> Self {
+        self.tags = Some(tags.iter().map(|s| s.to_string()).collect());
         self
     }
 }
@@ -85,33 +85,32 @@ mod test {
 
     #[test]
     fn site_can_be_created() {
-        let site = Site::new("Fe".to_string());
+        let site = Site::new("Fe");
         assert_eq!(site.kind, "Fe");
         assert_eq!(site.position, (0.0, 0.0, 0.0));
     }
 
     #[test]
     fn site_can_be_moved() {
-        let site = Site::new("Fe".to_string()).move_along(super::Axis::X, 1.0);
+        let site = Site::new("Fe").move_along(super::Axis::X, 1.0);
         assert_eq!(site.position, (1.0, 0.0, 0.0));
     }
 
     #[test]
     fn site_can_be_changed() {
-        let site = Site::new("Fe".to_string()).with_kind("Cu".to_string());
+        let site = Site::new("Fe").with_kind("Cu".to_string());
         assert_eq!(site.kind, "Cu");
     }
 
     #[test]
     fn site_can_be_positioned() {
-        let site = Site::new("Fe".to_string()).with_position((1.0, 1.0, 1.0));
+        let site = Site::new("Fe").with_position((1.0, 1.0, 1.0));
         assert_eq!(site.position, (1.0, 1.0, 1.0));
     }
 
     #[test]
     fn site_can_be_tagged() {
-        let site =
-            Site::new("Fe".to_string()).with_tags(vec!["core".to_string(), "inner".to_string()]);
+        let site = Site::new("Fe").with_tags(vec!["core", "inner"]);
         assert_eq!(
             site.tags,
             Some(vec!["core".to_string(), "inner".to_string()])
