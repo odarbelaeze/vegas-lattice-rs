@@ -26,6 +26,15 @@ impl Tagged for Site {
 }
 
 impl Site {
+    /// Create a new site with a given kind located at the origin
+    pub fn new(kind: String) -> Self {
+        Site {
+            kind,
+            position: (0.0, 0.0, 0.0),
+            tags: None,
+        }
+    }
+
     /// Return the position of the site
     pub fn position(&self) -> (f64, f64, f64) {
         self.position
@@ -36,22 +45,32 @@ impl Site {
         self.kind.clone()
     }
 
-    /// Returns a new site moved a given disntance along a given axis
-    pub fn move_along(&self, axis: Axis, distance: f64) -> Self {
-        let mut site = self.clone();
+    /// Move the site along a given axis by a given distance
+    pub fn move_along(mut self, axis: Axis, distance: f64) -> Self {
         match axis {
-            Axis::X => site.position.0 += distance,
-            Axis::Y => site.position.1 += distance,
-            Axis::Z => site.position.2 += distance,
+            Axis::X => self.position.0 += distance,
+            Axis::Y => self.position.1 += distance,
+            Axis::Z => self.position.2 += distance,
         };
-        site
+        self
     }
 
-    /// Returns a new site with the same properties but a different kind
-    pub fn with_kind(&self, kind: String) -> Self {
-        let mut site = self.clone();
-        site.kind = kind;
-        site
+    /// Changes the kind of the site
+    pub fn with_kind(mut self, kind: String) -> Self {
+        self.kind = kind;
+        self
+    }
+
+    /// Changes the position of the site
+    pub fn with_position(mut self, position: (f64, f64, f64)) -> Self {
+        self.position = position;
+        self
+    }
+
+    /// Adds tags to the site
+    pub fn with_tags(mut self, tags: Vec<String>) -> Self {
+        self.tags = Some(tags);
+        self
     }
 }
 
@@ -59,6 +78,50 @@ impl Site {
 mod test {
     use super::Site;
     use std::str::FromStr;
+
+    #[test]
+    fn site_can_be_created() {
+        let site = Site::new("Fe".to_string());
+        assert_eq!(site.kind, "Fe");
+        assert_eq!(site.position, (0.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn site_can_be_moved() {
+        let site = Site::new("Fe".to_string()).move_along(super::Axis::X, 1.0);
+        assert_eq!(site.position, (1.0, 0.0, 0.0));
+    }
+
+    #[test]
+    fn site_can_be_changed() {
+        let site = Site::new("Fe".to_string()).with_kind("Cu".to_string());
+        assert_eq!(site.kind, "Cu");
+    }
+
+    #[test]
+    fn site_can_be_positioned() {
+        let site = Site::new("Fe".to_string()).with_position((1.0, 1.0, 1.0));
+        assert_eq!(site.position, (1.0, 1.0, 1.0));
+    }
+
+    #[test]
+    fn site_can_be_tagged() {
+        let site =
+            Site::new("Fe".to_string()).with_tags(vec!["core".to_string(), "inner".to_string()]);
+        assert_eq!(
+            site.tags,
+            Some(vec!["core".to_string(), "inner".to_string()])
+        );
+    }
+
+    #[test]
+    fn site_can_be_read_from_string() {
+        let data = r#"
+            {"kind": "Fe", "position": [0, 0, 0]}
+        "#;
+        let site_result = Site::from_str(data);
+        assert!(site_result.is_ok());
+    }
 
     #[test]
     fn site_will_take_optional_tags() {
@@ -71,14 +134,5 @@ mod test {
             site_result.unwrap().tags,
             Some(vec!["core".to_string(), "inner".to_string()])
         );
-    }
-
-    #[test]
-    fn vertex_site_can_be_read_from_str() {
-        let data = r#"
-            {"kind": "Fe", "position": [0, 0, 0]}
-        "#;
-        let site_result = Site::from_str(data);
-        assert!(site_result.is_ok());
     }
 }

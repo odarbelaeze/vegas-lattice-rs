@@ -36,7 +36,6 @@ impl Lattice {
         &self.vertices
     }
 
-    /// Checks if the vertices of the lattice don't exceed the number of sites
     fn are_vertices_consistent(&self) -> bool {
         self.vertices
             .iter()
@@ -79,7 +78,7 @@ impl Lattice {
         self.sites = (0..amount)
             .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.sites().iter().cycle())
-            .map(|(index, site)| site.move_along(axis, (index as f64) * size))
+            .map(|(index, site)| site.clone().move_along(axis, (index as f64) * size))
             .collect();
 
         self.vertices = (0..amount)
