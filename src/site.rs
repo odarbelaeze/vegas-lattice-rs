@@ -4,7 +4,11 @@ use super::util::{Axis, Tagged};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 
-/// Represetns a site in a lattice
+/// Represetns a site in a lattice.
+///
+/// The `kind` field is the type of the site, for example `Fe` for iron or `Cu` for copper.
+/// The `position` field is a tuple of the x, y, and z coordinates of the site within the
+/// lattice.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
     kind: String,

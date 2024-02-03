@@ -84,7 +84,7 @@ impl Lattice {
         self.vertices = (0..amount)
             .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.vertices.iter().cycle())
-            .map(|(index, vertex)| vertex.move_along(axis, index, n_sites, amount))
+            .map(|(index, vertex)| vertex.clone().move_along(axis, index, n_sites, amount))
             .collect();
 
         match axis {
