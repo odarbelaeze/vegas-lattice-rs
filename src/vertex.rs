@@ -14,6 +14,30 @@ use serde_json::Error as SerdeError;
 /// For a simple cubic lattice the `source` and `target` for all the vertices would be the same,
 /// `0`. While delta would be `(1, 0, 0)`, `(0, 1, 0)`, `(0, 0, 1)`. Those 3 vertices would connect
 /// all the sites in the lattice.
+///
+/// # Examples
+///
+/// Here is an example of how to create a vertex and access its fields:
+///
+/// ```rust
+/// use vegas_lattice::Vertex;
+///
+/// let vertex = Vertex::new(0, 1, (0, 0, 1));
+/// assert_eq!(vertex.source(), 0);
+/// assert_eq!(vertex.target(), 1);
+/// assert_eq!(vertex.delta(), (0, 0, 1));
+/// ```
+///
+/// Here's how to move a vertex along an axis:
+///
+/// ```rust
+/// use vegas_lattice::{Vertex, Axis};
+///
+/// let vertex = Vertex::new(0, 1, (0, 0, 1)).move_along(Axis::Z, 1, 2, 3);
+/// assert_eq!(vertex.source(), 2);
+/// assert_eq!(vertex.target(), 5);
+/// assert_eq!(vertex.delta(), (0, 0, 0));
+/// ```
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vertex {
     source: usize,

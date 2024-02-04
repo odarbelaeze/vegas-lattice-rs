@@ -17,6 +17,44 @@ use serde::{Deserialize, Serialize};
 /// For now it only supports rectangular lattices. This is Orthorombic, Tetragonal and Cubic
 /// Bravais lattices. We assume the lattice vectors are aligned with the cartesian axes. While you
 /// can choose the lattice parameters _a_, _b_, and _c_ to be different.
+///
+/// # Examples
+///
+/// Here is an example of how to create a simple cubic lattice:
+///
+/// ```rust
+/// use vegas_lattice::Lattice;
+///
+/// let lattice = Lattice::sc(1.0);
+///
+/// assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+/// assert_eq!(lattice.sites().len(), 1);
+/// assert_eq!(lattice.vertices().len(), 3);
+/// ```
+///
+/// Here is an example of how to create a body centered cubic lattice:
+///
+/// ```rust
+/// use vegas_lattice::Lattice;
+///
+/// let lattice = Lattice::bcc(1.0);
+///
+/// assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+/// assert_eq!(lattice.sites().len(), 2);
+/// assert_eq!(lattice.vertices().len(), 8);
+/// ```
+///
+/// Here's how to expand a lattice along the x axis:
+///
+/// ```rust
+/// use vegas_lattice::{Axis, Lattice};
+///
+/// let lattice = Lattice::sc(1.0).expand_along(Axis::X, 2);
+///
+/// assert_eq!(lattice.size(), (2.0, 1.0, 1.0));
+/// assert_eq!(lattice.sites().len(), 2);
+/// // TODO: assert_eq!(lattice.vertices().len(), 6);
+/// ```
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
     size: (f64, f64, f64),
@@ -57,6 +95,10 @@ impl Lattice {
             Vertex::new(0, 1, (0, -1, 0)),
             Vertex::new(0, 1, (-1, 0, 0)),
             Vertex::new(0, 1, (-1, -1, 0)),
+            Vertex::new(0, 1, (0, 0, -1)),
+            Vertex::new(0, 1, (0, -1, -1)),
+            Vertex::new(0, 1, (-1, 0, -1)),
+            Vertex::new(0, 1, (-1, -1, -1)),
         ];
         Lattice {
             size: (a, a, a),
@@ -161,7 +203,7 @@ impl Lattice {
     /// Removes sites from the lattice according to the given mask
     ///
     /// TODO: This only removes points in the xy plane, and it should be generalized
-    pub fn apply_mask(mut self, mut mask: Mask) -> Self {
+    pub fn apply_mask(mut self, mask: Mask) -> Self {
         let mut rng = thread_rng();
         let site_mask: Vec<_> = self
             .sites

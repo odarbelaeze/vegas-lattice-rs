@@ -10,6 +10,7 @@ use std::io::Error as IoError;
 pub enum LatticeError {
     IoError(IoError),
     JsonParseError(SerdeError),
+    ImageReadError(image::ImageError),
     InconsistentVertices,
     NegativeSize,
 }
@@ -19,6 +20,7 @@ impl StdError for LatticeError {
         match self {
             LatticeError::IoError(_) => "There was an error reading your file",
             LatticeError::JsonParseError(_) => "There was a problem parsing json",
+            LatticeError::ImageReadError(_) => "There was a problem reading the image",
             LatticeError::InconsistentVertices => "These vertices are inconsistent",
             LatticeError::NegativeSize => "What are you up to don't give me a negative size",
         }
@@ -38,6 +40,7 @@ impl fmt::Display for LatticeError {
         match *self {
             LatticeError::IoError(_) => f.write_str("IoError"),
             LatticeError::JsonParseError(_) => f.write_str("JsonParseError"),
+            LatticeError::ImageReadError(_) => f.write_str("ImageReadError"),
             LatticeError::InconsistentVertices => f.write_str("InconsistentVertices"),
             LatticeError::NegativeSize => f.write_str("NegativeSize"),
         }
@@ -53,5 +56,11 @@ impl From<SerdeError> for LatticeError {
 impl From<IoError> for LatticeError {
     fn from(err: IoError) -> Self {
         LatticeError::IoError(err)
+    }
+}
+
+impl From<image::ImageError> for LatticeError {
+    fn from(err: image::ImageError) -> Self {
+        LatticeError::ImageReadError(err)
     }
 }

@@ -9,6 +9,19 @@ use serde_json::Error as SerdeError;
 /// The `kind` field is the type of the site, for example `Fe` for iron or `Cu` for copper.
 /// The `position` field is a tuple of the x, y, and z coordinates of the site within the
 /// lattice.
+///
+/// # Exalples
+///
+/// Here is an example of how to create a site and access its fields:
+///
+/// ```rust
+/// use vegas_lattice::Site;
+///
+/// let site = Site::new("Fe");
+///
+/// assert_eq!(site.kind(), "Fe");
+/// assert_eq!(site.position(), (0.0, 0.0, 0.0));
+/// ```
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Site {
     kind: String,
