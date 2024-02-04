@@ -53,7 +53,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// assert_eq!(lattice.size(), (2.0, 1.0, 1.0));
 /// assert_eq!(lattice.sites().len(), 2);
-/// // TODO: assert_eq!(lattice.vertices().len(), 6);
+/// assert_eq!(lattice.vertices().len(), 6);
 /// ```
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Lattice {
@@ -178,6 +178,7 @@ impl Lattice {
     pub fn expand_along(mut self, axis: Axis, amount: usize) -> Self {
         let size = self.size_along(axis);
         let n_sites = self.sites.len();
+        let n_vertices = self.vertices.len();
 
         self.sites = (0..amount)
             .flat_map(|i| repeat(i).take(n_sites))
@@ -186,7 +187,7 @@ impl Lattice {
             .collect();
 
         self.vertices = (0..amount)
-            .flat_map(|i| repeat(i).take(n_sites))
+            .flat_map(|i| repeat(i).take(n_vertices))
             .zip(self.vertices.iter().cycle())
             .map(|(index, vertex)| vertex.clone().move_along(axis, index, n_sites, amount))
             .collect();
