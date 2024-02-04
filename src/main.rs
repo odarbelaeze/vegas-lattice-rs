@@ -16,6 +16,8 @@ const USAGE: &str = "
 Vegas lattice.
 
 Usage:
+    vegas-lattice sc [<a>]
+    vegas-lattice bcc [<a>]
     vegas-lattice check [<input>]
     vegas-lattice pretty [<input>]
     vegas-lattice drop [-x -y -z] [<input>]
@@ -38,6 +40,7 @@ struct Args {
     arg_source: String,
     arg_target: Vec<String>,
     arg_ratio: Vec<u32>,
+    arg_a: Option<f64>,
     arg_mask: String,
     flag_along_x: Option<usize>,
     flag_along_y: Option<usize>,
@@ -46,6 +49,8 @@ struct Args {
     flag_y: bool,
     flag_z: bool,
     flag_ppu: f64,
+    cmd_sc: bool,
+    cmd_bcc: bool,
     cmd_check: bool,
     cmd_pretty: bool,
     cmd_drop: bool,
@@ -173,7 +178,15 @@ fn main() {
         .and_then(|doc| doc.version(Some("0.0.1".to_string())).deserialize())
         .unwrap_or_else(|e| e.exit());
 
-    if args.cmd_check {
+    if args.cmd_sc {
+        let a = args.arg_a.unwrap_or(1.0);
+        let lattice = Lattice::sc(a);
+        write(lattice);
+    } else if args.cmd_bcc {
+        let a = args.arg_a.unwrap_or(1.0);
+        let lattice = Lattice::bcc(a);
+        write(lattice);
+    } else if args.cmd_check {
         check_error(check(args));
     } else if args.cmd_pretty {
         check_error(pretty(args));
