@@ -1,8 +1,14 @@
+//! Defines the `to_writer_lattice` function for serializing a type to a writer
+
 use serde::ser;
 use serde_json::error::Result;
 use serde_json::ser::{Formatter, Serializer};
 use std::io;
 
+/// A formatter for serializing to a writer with a lattice style
+///
+/// Essentially formats the json as a lattice, with a max indent of 2.
+/// This way the json is still readable, but not too verbose.
 pub struct LatticeFormatter {
     current_indent: usize,
     has_value: bool,
@@ -11,10 +17,12 @@ pub struct LatticeFormatter {
 }
 
 impl LatticeFormatter {
+    /// Create a new formatter with a max indent of 2
     pub fn new() -> Self {
         LatticeFormatter::with_max_indent(2)
     }
 
+    /// Create a new formatter with a custom max indent
     pub fn with_max_indent(max_indent: usize) -> Self {
         LatticeFormatter {
             current_indent: 0,
@@ -148,6 +156,7 @@ impl Formatter for LatticeFormatter {
     }
 }
 
+/// Serializes a type to a writer with a lattice style
 #[inline]
 pub fn to_writer_lattice<W, T: ?Sized>(writer: W, value: &T) -> Result<()>
 where
@@ -159,6 +168,7 @@ where
     Ok(())
 }
 
+/// Serialises a type to a vector with a lattice style
 #[inline]
 pub fn to_vec_lattice<T: ?Sized>(value: &T) -> Result<Vec<u8>>
 where
@@ -169,6 +179,7 @@ where
     Ok(writer)
 }
 
+/// Serializes a type to a string with a lattice style
 #[inline]
 pub fn to_string_lattice<T: ?Sized>(value: &T) -> Result<String>
 where
