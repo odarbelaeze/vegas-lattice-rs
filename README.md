@@ -2,12 +2,11 @@
 
 ![Crates.io](https://img.shields.io/crates/v/vegas-lattice.svg)
 ![Build Status](https://github.com/odarbelaeze/vegas-lattice-rs/actions/workflows/rust.yml/badge.svg?branch=main)
+[![Documentation](https://docs.rs/vegas-lattice/badge.svg)](https://docs.rs/vegas-lattice)
 [![DOI](https://zenodo.org/badge/90330925.svg)](https://zenodo.org/badge/latestdoi/90330925)
 
 A little tool to build lattices and samples out of patterns written in
 [rust].
-
-Take a look at the [wiki].
 
 ## Installation
 
@@ -21,8 +20,7 @@ cargo install vegas-lattice
 ```
 
 after runing that you will have an executable `vegas-lattice` in your system
-that will run as expected. Otherwise you can grab an appropriate binary from
-the [releases] page.
+that will run as expected.
 
 If you intent to use it as a library just add the the following line to your
 `Cargo.toml`:
@@ -38,15 +36,17 @@ Pin it at will when you're done, since this is an actively developed package.
 I'd recommend to alias `vegas-lattice` to something shorter, since the
 pipelines can get really complex real quick.
 
-```
+```bash
 alias vl=vegas-lattice
 ```
 
 Now, lets write a basic example,
 
-```
-vl expand docs/bcc.json --x 10 --y 10 --z 5 \
-    | vl alloy Fe Fe+ 50 Fe 50 \
+```bash
+vl bcc \
+    | vl expand --along-x 10 --along-y 10 --along-z 5 \
+    | vl alloy A Fe+ 50 Fe 50 \
+    | vl alloy B Fe+ 50 Fe 50 \
     | vl into xyz
 ```
 
@@ -57,10 +57,6 @@ representation.
 Notice that you can pipe the output of one command to the next one using the
 standard io.
 
-For more explanation in how the different commands work, take a look at the
-[wiki] page.
-
 [crates.io]: https://crates.io/
 [rust]: https://www.rust-lang.org/en-US/
-[wiki]: https://github.com/odarbelaeze/vegas-lattice-rs/wiki
 [releases]: https://github.com/odarbelaeze/vegas-lattice-rs/releases
