@@ -2,6 +2,113 @@
 //!
 //! This is a library for generating and manipulating 3D lattices.
 //!
+//!
+//! # Examples
+//!
+//! ## Lattice creation
+//!
+//! `vegas_lattice` provides simple ways to create cubic and body centered cubic lattices. But you
+//! can create any number of custom lattices by creating the sites and vertices manually.
+//!
+//! Here is an example of how to create a simple cubic lattice:
+//!
+//! ```rust
+//! use vegas_lattice::Lattice;
+//!
+//! let lattice = Lattice::sc(1.0);
+//!
+//! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+//! assert_eq!(lattice.sites().len(), 1);
+//! assert_eq!(lattice.vertices().len(), 3);
+//! ```
+//!
+//! Here is an example of how to create a body centered cubic lattice:
+//!
+//! ```rust
+//! use vegas_lattice::Lattice;
+//!
+//! let lattice = Lattice::bcc(1.0);
+//!
+//! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+//! assert_eq!(lattice.sites().len(), 2);
+//! assert_eq!(lattice.vertices().len(), 8);
+//! ```
+//!
+//! ## Lattice expansion
+//!
+//!
+//! The most crucial operation to vegas lattice is expand, this is the one that takes a lattice
+//! (usually a unitcell) and expands it to a bigger lattice, for example, if you take a cubic
+//! lattice and apply the following operation:
+//!
+//! ```rust
+//! use vegas_lattice::{Axis, Lattice};
+//!
+//! let lattice = Lattice::sc(1.0).expand_along(Axis::X, 2);
+//!
+//! assert_eq!(lattice.size(), (2.0, 1.0, 1.0));
+//! assert_eq!(lattice.sites().len(), 2);
+//! assert_eq!(lattice.vertices().len(), 6);
+//! ```
+//!
+//! You will end up with a lattice that is twice as big in the x direction. Notice how the number
+//! of sites and vertices is also doubled. This is because the lattice is expanded by replicating
+//! the original lattice in the _x_ direction. The same operation can be applied to the _y_ and
+//! _z_. The vertices of the lattice are also replicated.
+//!
+//! ## Vertex dropping
+//!
+//! Well, as you saw in the expand operation, we keep the vertices that have a delta those belong
+//! to neighboring cells and can be interpreted as periodic boundary conditions, they also allow
+//! for future expansions of the lattice, if you want to _drop_ this behavour you can use the
+//! `drop` operation. Let's remove the periodic boundary conditions of the cubic lattice example we
+//! did before:
+//!
+//! ```rust
+//! use vegas_lattice::{Axis, Lattice};
+//!
+//! let lattice = Lattice::sc(1.0).drop(Axis::X);
+//! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+//! assert_eq!(lattice.sites().len(), 1);
+//! assert_eq!(lattice.vertices().len(), 2);
+//! ```
+//!
+//! ## Masking
+//!
+//! The `apply_mask` operation allows you to remove sites from the lattice according to a mask. The
+//! mask is a function that takes the coordinates of a site and returns a boolean. If the function
+//! returns `true`, the site is kept, otherwise it is removed. This is useful to create composite
+//! materials by drawing an image of them.
+//!
+//! ```rust
+//! extern crate rand;
+//!
+//! use vegas_lattice::{Axis, Lattice, Mask};
+//! use rand::thread_rng;
+//! use std::path::Path;
+//!
+//! let lattice = Lattice::sc(1.0)
+//!     .expand_along(Axis::X, 2)
+//!     .expand_along(Axis::Y, 2)
+//!     .expand_along(Axis::Z, 2)
+//!     .apply_mask(Mask::new(Path::new("docs/pattern.png"), 100.0).unwrap());
+//! assert_eq!(lattice.size(), (2.0, 2.0, 2.0));
+//! assert!(lattice.sites().len() <= 8);
+//! assert!(lattice.vertices().len() <= 24);
+//! ```
+//!
+//! ## Alloying
+//!
+//! The `alloy_sites` operation allows you to replace sites labeled as `source` with sites in the
+//! `target` alloy. This is useful to create alloy materials by mixing different materials.
+//!
+//! ```rust
+//! use vegas_lattice::{Alloy, Lattice};
+//!
+//! let lattice = Lattice::sc(1.0).alloy_sites("A", Alloy::new(vec!["B", "C"], vec![50, 50]));
+//! assert_eq!(lattice.sites().len(), 1);
+//! assert!(lattice.sites()[0].kind() == "B" || lattice.sites()[0].kind() == "C");
+//! ```
 
 extern crate rand;
 extern crate serde;
