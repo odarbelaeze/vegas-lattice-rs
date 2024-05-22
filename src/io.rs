@@ -38,9 +38,9 @@ impl LatticeFormatter {
     }
 
     #[inline]
-    fn begin_colletion_item<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    fn begin_colletion_item<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         match (first, self.above_max_indent()) {
             (true, false) => {
@@ -68,9 +68,9 @@ impl Default for LatticeFormatter {
 
 impl Formatter for LatticeFormatter {
     #[inline]
-    fn begin_array<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    fn begin_array<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         self.current_indent += 1;
         self.has_value = false;
@@ -78,9 +78,9 @@ impl Formatter for LatticeFormatter {
     }
 
     #[inline]
-    fn end_array<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    fn end_array<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         if !self.above_max_indent() && self.has_value {
             writer.write_all(b"\n")?;
@@ -91,26 +91,26 @@ impl Formatter for LatticeFormatter {
     }
 
     #[inline]
-    fn begin_array_value<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    fn begin_array_value<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         self.begin_colletion_item(writer, first)
     }
 
     #[inline]
-    fn end_array_value<W: ?Sized>(&mut self, _writer: &mut W) -> io::Result<()>
+    fn end_array_value<W>(&mut self, _writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         self.has_value = true;
         Ok(())
     }
 
     #[inline]
-    fn begin_object<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    fn begin_object<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         self.current_indent += 1;
         self.has_value = false;
@@ -118,9 +118,9 @@ impl Formatter for LatticeFormatter {
     }
 
     #[inline]
-    fn end_object<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    fn end_object<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         if !self.above_max_indent() && self.has_value {
             writer.write_all(b"\n")?;
@@ -131,25 +131,25 @@ impl Formatter for LatticeFormatter {
     }
 
     #[inline]
-    fn begin_object_key<W: ?Sized>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
+    fn begin_object_key<W>(&mut self, writer: &mut W, first: bool) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         self.begin_colletion_item(writer, first)
     }
 
     #[inline]
-    fn begin_object_value<W: ?Sized>(&mut self, writer: &mut W) -> io::Result<()>
+    fn begin_object_value<W>(&mut self, writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         writer.write_all(b": ")
     }
 
     #[inline]
-    fn end_object_value<W: ?Sized>(&mut self, _writer: &mut W) -> io::Result<()>
+    fn end_object_value<W>(&mut self, _writer: &mut W) -> io::Result<()>
     where
-        W: io::Write,
+        W: ?Sized + io::Write,
     {
         self.has_value = true;
         Ok(())
@@ -158,10 +158,10 @@ impl Formatter for LatticeFormatter {
 
 /// Serializes a type to a writer with a lattice style
 #[inline]
-pub fn to_writer_lattice<W, T: ?Sized>(writer: W, value: &T) -> Result<()>
+pub fn to_writer_lattice<W, T>(writer: W, value: &T) -> Result<()>
 where
     W: io::Write,
-    T: ser::Serialize,
+    T: ?Sized + ser::Serialize,
 {
     let mut ser = Serializer::with_formatter(writer, LatticeFormatter::new());
     value.serialize(&mut ser)?;
@@ -170,9 +170,9 @@ where
 
 /// Serialises a type to a vector with a lattice style
 #[inline]
-pub fn to_vec_lattice<T: ?Sized>(value: &T) -> Result<Vec<u8>>
+pub fn to_vec_lattice<T>(value: &T) -> Result<Vec<u8>>
 where
-    T: ser::Serialize,
+    T: ?Sized + ser::Serialize,
 {
     let mut writer = Vec::with_capacity(128);
     to_writer_lattice(&mut writer, value)?;
@@ -181,9 +181,9 @@ where
 
 /// Serializes a type to a string with a lattice style
 #[inline]
-pub fn to_string_lattice<T: ?Sized>(value: &T) -> Result<String>
+pub fn to_string_lattice<T>(value: &T) -> Result<String>
 where
-    T: ser::Serialize,
+    T: ?Sized + ser::Serialize,
 {
     let vec = to_vec_lattice(value)?;
     let string = unsafe {
@@ -193,9 +193,9 @@ where
     Ok(string)
 }
 
-fn indent<W: ?Sized>(wr: &mut W, n: usize, s: &[u8]) -> io::Result<()>
+fn indent<W>(wr: &mut W, n: usize, s: &[u8]) -> io::Result<()>
 where
-    W: io::Write,
+    W: ?Sized + io::Write,
 {
     for _ in 0..n {
         wr.write_all(s)?;
