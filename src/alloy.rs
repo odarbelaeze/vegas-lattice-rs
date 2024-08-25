@@ -32,6 +32,11 @@ impl Alloy {
         }
     }
 
+    pub fn from_targets(targets: Vec<(&str, u32)>) -> Self {
+        let (kinds, ratios): (Vec<_>, Vec<_>) = targets.into_iter().unzip();
+        Self::new(kinds, ratios)
+    }
+
     /// Picks a kind of atom from the alloy
     pub fn pick<R: Rng + ?Sized>(&self, rng: &mut R) -> String {
         self.kinds[self.weights.sample(rng)].clone()
