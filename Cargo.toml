@@ -1,6 +1,6 @@
 [package]
 name = "vegas-lattice"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["Oscar David Arbeláez Echeverri <oscar@arbelaez.dev>"]
 description = "CLI and library to work with lattices"
 documentation = "https://docs.rs/vegas-lattice"
