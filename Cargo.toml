@@ -10,6 +10,7 @@ readme = "README.md"
 keywords = ["lattice", "graph", "crystall", "materials"]
 categories = ["command-line-utilities", "science", "simulation"]
 license-file = "LICENSE.txt"
+edition = "2021"
 
 [badges]
 is-it-maintained-issue-resolution = { repository = "odarbelaeze/vegas-lattice-rs" }
