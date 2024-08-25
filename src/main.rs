@@ -1,5 +1,3 @@
-#![feature(iter_array_chunks)]
-
 extern crate serde;
 extern crate serde_json;
 extern crate vegas_lattice;
@@ -12,7 +10,7 @@ use std::path::Path;
 use clap::{Arg, ArgAction, Command};
 use vegas_lattice::{io, Alloy, Axis, Lattice, Mask};
 
-const USAGE: &str = "Vegas lattice helps you to manipulate lattices.";
+const DESCRIPTION: &str = "Vegas lattice helps you to manipulate lattices.";
 
 fn read(input: Option<&str>) -> Result<Lattice, Box<dyn Error>> {
     let mut data = String::new();
@@ -142,7 +140,7 @@ fn main() {
         .bin_name("vegas-lattice")
         .about("Vegas lattice")
         .version("0.6.0")
-        .long_about(USAGE)
+        .long_about(DESCRIPTION)
         .subcommand_required(true)
         .subcommand(
             Command::new("sc").about("Simple cubic lattice").arg(
@@ -323,10 +321,13 @@ fn main() {
             let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
             let source = sub_matches.get_one::<String>("source").unwrap();
             if let Some(target) = sub_matches.get_many::<String>("target") {
-                let target: Vec<_> = target
-                    .array_chunks::<2>()
-                    .map(|[a, b]| (a.as_str(), b.parse::<u32>().unwrap()))
+                let kinds: Vec<_> = target.clone().step_by(2).map(|s| s.as_str()).collect();
+                let ratios: Vec<_> = target
+                    .skip(1)
+                    .step_by(2)
+                    .map(|s| s.parse::<u32>().unwrap())
                     .collect();
+                let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
                 alloy(input, source, target)
             } else {
                 Err("No target provided".into())
