@@ -1,21 +1,17 @@
 {
-  "size": [
-    1.0,
-    1.0,
-    1.0
-  ],
+  "size": [1.0, 1.0, 1.0],
   "sites": [
-    {"kind": "A", "position": [0.0, 0.0, 0.0], "tags": null},
-    {"kind": "B", "position": [0.0, 0.0, 0.0], "tags": null}
+    { "kind": "A", "position": [0.0, 0.0, 0.0], "tags": null },
+    { "kind": "B", "position": [0.5, 0.5, 0.5], "tags": null }
   ],
   "vertices": [
-    {"source": 0, "target": 1, "delta": [0, 0, 0], "tags": null},
-    {"source": 0, "target": 1, "delta": [0, -1, 0], "tags": null},
-    {"source": 0, "target": 1, "delta": [-1, 0, 0], "tags": null},
-    {"source": 0, "target": 1, "delta": [-1, -1, 0], "tags": null},
-    {"source": 0, "target": 1, "delta": [0, 0, -1], "tags": null},
-    {"source": 0, "target": 1, "delta": [0, -1, -1], "tags": null},
-    {"source": 0, "target": 1, "delta": [-1, 0, -1], "tags": null},
-    {"source": 0, "target": 1, "delta": [-1, -1, -1], "tags": null}
+    { "source": 0, "target": 1, "delta": [0, 0, 0], "tags": null },
+    { "source": 0, "target": 1, "delta": [0, -1, 0], "tags": null },
+    { "source": 0, "target": 1, "delta": [-1, 0, 0], "tags": null },
+    { "source": 0, "target": 1, "delta": [-1, -1, 0], "tags": null },
+    { "source": 0, "target": 1, "delta": [0, 0, -1], "tags": null },
+    { "source": 0, "target": 1, "delta": [0, -1, -1], "tags": null },
+    { "source": 0, "target": 1, "delta": [-1, 0, -1], "tags": null },
+    { "source": 0, "target": 1, "delta": [-1, -1, -1], "tags": null }
   ]
 }
