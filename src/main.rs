@@ -10,12 +10,10 @@ use std::path::Path;
 use clap::{Arg, ArgAction, Command};
 use vegas_lattice::{io, Alloy, Axis, Lattice, Mask};
 
-const DESCRIPTION: &str = "Vegas lattice helps you to manipulate lattices.";
-
 fn read(input: Option<&str>) -> Result<Lattice, Box<dyn Error>> {
     let mut data = String::new();
     if let Some(filename) = input {
-        let mut file = File::open(&filename)?;
+        let mut file = File::open(filename)?;
         file.read_to_string(&mut data)?;
     } else {
         stdin().read_to_string(&mut data)?;
@@ -102,7 +100,7 @@ fn alloy(
 ) -> Result<(), Box<dyn Error>> {
     let alloy = Alloy::from_targets(targets);
     let mut lattice = read(input)?;
-    lattice = lattice.alloy_sites(&source, alloy);
+    lattice = lattice.alloy_sites(source, alloy);
     write(lattice);
     Ok(())
 }
@@ -140,7 +138,7 @@ fn main() {
         .bin_name("vegas-lattice")
         .about("Vegas lattice")
         .version("0.6.0")
-        .long_about(DESCRIPTION)
+        .long_about("Vegas lattice helps you manipulate lattice structures.")
         .subcommand_required(true)
         .subcommand(
             Command::new("sc").about("Simple cubic lattice").arg(
@@ -244,7 +242,7 @@ fn main() {
                         .short('t')
                         .long("target")
                         .help("Target kind with is corresponding ratio")
-                        .value_names(&["target", "ratio"])
+                        .value_names(["target", "ratio"])
                         .action(ArgAction::Append)
                         .num_args(2),
                 )
