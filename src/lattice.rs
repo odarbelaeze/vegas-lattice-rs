@@ -51,7 +51,10 @@ impl Lattice {
 
     /// Create a body centered cubic lattice with the given size _a_
     pub fn bcc(a: f64) -> Self {
-        let sites = vec![Site::new("A"), Site::new("B")];
+        let sites = vec![
+            Site::new("A"),
+            Site::new("B").with_position((0.5 * a, 0.5 * a, 0.5 * a)),
+        ];
         let vertices = vec![
             Vertex::new(0, 1, (0, 0, 0)),
             Vertex::new(0, 1, (0, -1, 0)),
@@ -61,6 +64,38 @@ impl Lattice {
             Vertex::new(0, 1, (0, -1, -1)),
             Vertex::new(0, 1, (-1, 0, -1)),
             Vertex::new(0, 1, (-1, -1, -1)),
+        ];
+        Lattice {
+            size: (a, a, a),
+            sites,
+            vertices,
+        }
+    }
+
+    /// Create a face centered cubic lattice with lattice parameter _a_
+    pub fn fcc(a: f64) -> Self {
+        let sites = vec![
+            Site::new("A"),
+            Site::new("B").with_position((0.5 * a, 0.5 * a, 0.0)),
+            Site::new("C").with_position((0.5 * a, 0.0, 0.5 * a)),
+            Site::new("D").with_position((0.0, 0.5 * a, 0.5 * a)),
+        ];
+        let vertices = vec![
+            // xy plane
+            Vertex::new(0, 1, (0, 0, 0)),
+            Vertex::new(0, 1, (-1, 0, 0)),
+            Vertex::new(0, 1, (-1, -1, 0)),
+            Vertex::new(0, 1, (0, -1, 0)),
+            // xz plane
+            Vertex::new(0, 2, (0, 0, 0)),
+            Vertex::new(0, 2, (-1, 0, 0)),
+            Vertex::new(0, 2, (-1, 0, -1)),
+            Vertex::new(0, 2, (0, 0, -1)),
+            // yz plane
+            Vertex::new(0, 3, (0, 0, 0)),
+            Vertex::new(0, 3, (0, -1, 0)),
+            Vertex::new(0, 3, (0, -1, -1)),
+            Vertex::new(0, 3, (0, 0, -1)),
         ];
         Lattice {
             size: (a, a, a),

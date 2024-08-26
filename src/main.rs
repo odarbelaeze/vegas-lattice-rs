@@ -163,6 +163,18 @@ fn main() {
                 ),
         )
         .subcommand(
+            Command::new("fcc")
+                .about("Face centered cubic lattice")
+                .arg(
+                    Arg::new("a")
+                        .long("lattice-parameter")
+                        .short('a')
+                        .default_value("1.0")
+                        .value_parser(|s: &str| s.parse::<f64>())
+                        .help("Lattice parameter"),
+                ),
+        )
+        .subcommand(
             Command::new("check")
                 .about("Check lattice")
                 .arg(Arg::new("input").help("Input file").required(false)),
@@ -290,6 +302,12 @@ fn main() {
         Some(("bcc", sub_matches)) => {
             let a = sub_matches.get_one::<f64>("a").unwrap();
             let lattice = Lattice::bcc(*a);
+            write(lattice);
+            Ok(())
+        }
+        Some(("fcc", sub_matches)) => {
+            let a = sub_matches.get_one::<f64>("a").unwrap();
+            let lattice = Lattice::fcc(*a);
             write(lattice);
             Ok(())
         }
