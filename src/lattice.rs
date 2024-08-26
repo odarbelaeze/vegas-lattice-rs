@@ -51,7 +51,10 @@ impl Lattice {
 
     /// Create a body centered cubic lattice with the given size _a_
     pub fn bcc(a: f64) -> Self {
-        let sites = vec![Site::new("A"), Site::new("B")];
+        let sites = vec![
+            Site::new("A"),
+            Site::new("B").with_position((0.5, 0.5, 0.5)),
+        ];
         let vertices = vec![
             Vertex::new(0, 1, (0, 0, 0)),
             Vertex::new(0, 1, (0, -1, 0)),
