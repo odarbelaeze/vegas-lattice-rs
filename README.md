@@ -3,7 +3,7 @@
 ![Crates.io](https://img.shields.io/crates/v/vegas-lattice.svg)
 ![Build Status](https://github.com/odarbelaeze/vegas-lattice-rs/actions/workflows/rust.yml/badge.svg?branch=main)
 [![Documentation](https://docs.rs/vegas-lattice/badge.svg)](https://docs.rs/vegas-lattice)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13371523.svg)](https://doi.org/10.5281/zenodo.13371523)
+[![DOI](https://zenodo.org/badge/90330925.svg)](https://zenodo.org/badge/latestdoi/90330925)
 
 A little tool to build lattices and samples out of patterns written in
 [rust].
