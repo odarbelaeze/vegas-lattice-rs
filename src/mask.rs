@@ -1,14 +1,10 @@
 //! Simpe tools for dealing with masks, and abstracts the requirement of
 //! image.
 
-extern crate image;
-
-use std::path::Path;
-
-use crate::error::LatticeError;
-
-use self::image::{DynamicImage, GenericImageView, Pixel};
+use crate::error::VegasLatticeError;
+use image::{DynamicImage, GenericImageView, Pixel};
 use rand::Rng;
+use std::path::Path;
 
 /// A mask represents a 2D image that can be used to filter out points
 ///
@@ -32,7 +28,7 @@ pub struct Mask {
 
 impl Mask {
     /// Create a new mask from a path and a pixels per unit ratio
-    pub fn new(path: &Path, ppu: f64) -> Result<Self, LatticeError> {
+    pub fn new(path: &Path, ppu: f64) -> Result<Self, VegasLatticeError> {
         let img = image::open(path)?;
         Ok(Self {
             image: Box::new(img),

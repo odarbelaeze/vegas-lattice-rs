@@ -1,66 +1,23 @@
-//! Error handling for the lattice crate
+//! Error handling for the vegas lattice crate
 
 use serde_json::Error as SerdeError;
-use std::error::Error as StdError;
-use std::fmt;
 use std::io::Error as IoError;
+use thiserror::Error;
 
-/// Error type for the lattice crate
-#[derive(Debug)]
-pub enum LatticeError {
-    IoError(IoError),
-    JsonParseError(SerdeError),
-    ImageReadError(image::ImageError),
+/// Error type for the vegas lattice crate
+#[derive(Error, Debug)]
+pub enum VegasLatticeError {
+    #[error("IO error: {0}")]
+    IoError(#[from] IoError),
+    #[error("serialization error: {0}")]
+    SerializationError(#[from] SerdeError),
+    #[error("Formatter error: {0}")]
+    ImageReadError(#[from] image::ImageError),
+    #[error("inconsistent vertices")]
     InconsistentVertices,
+    #[error("negative size")]
     NegativeSize,
 }
 
-impl StdError for LatticeError {
-    fn description(&self) -> &str {
-        match self {
-            LatticeError::IoError(_) => "There was an error reading your file",
-            LatticeError::JsonParseError(_) => "There was a problem parsing json",
-            LatticeError::ImageReadError(_) => "There was a problem reading the image",
-            LatticeError::InconsistentVertices => "These vertices are inconsistent",
-            LatticeError::NegativeSize => "What are you up to don't give me a negative size",
-        }
-    }
-
-    fn cause(&self) -> Option<&dyn StdError> {
-        match self {
-            LatticeError::IoError(err) => Some(err),
-            LatticeError::JsonParseError(err) => Some(err),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for LatticeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            LatticeError::IoError(_) => f.write_str("IoError"),
-            LatticeError::JsonParseError(_) => f.write_str("JsonParseError"),
-            LatticeError::ImageReadError(_) => f.write_str("ImageReadError"),
-            LatticeError::InconsistentVertices => f.write_str("InconsistentVertices"),
-            LatticeError::NegativeSize => f.write_str("NegativeSize"),
-        }
-    }
-}
-
-impl From<SerdeError> for LatticeError {
-    fn from(err: SerdeError) -> Self {
-        LatticeError::JsonParseError(err)
-    }
-}
-
-impl From<IoError> for LatticeError {
-    fn from(err: IoError) -> Self {
-        LatticeError::IoError(err)
-    }
-}
-
-impl From<image::ImageError> for LatticeError {
-    fn from(err: image::ImageError) -> Self {
-        LatticeError::ImageReadError(err)
-    }
-}
+/// Result type for the vegas lattice crate
+pub type Result<T> = std::result::Result<T, VegasLatticeError>;

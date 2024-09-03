@@ -110,9 +110,11 @@
 //! assert!(lattice.sites()[0].kind() == "B" || lattice.sites()[0].kind() == "C");
 //! ```
 
+extern crate image;
 extern crate rand;
 extern crate serde;
 extern crate serde_json;
+extern crate thiserror;
 
 pub mod error;
 pub mod io;
