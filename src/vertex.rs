@@ -1,8 +1,7 @@
-use std::str::FromStr;
-
-use super::util::{python_mod, Axis, Tagged};
+use crate::util::{python_mod, Axis, Tagged};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
+use std::str::FromStr;
 
 /// Represents a vertex in a lattice.
 ///

@@ -1,7 +1,7 @@
 //! Defines the `to_writer_lattice` function for serializing a type to a writer
 
+use crate::error::Result;
 use serde::ser;
-use serde_json::error::Result;
 use serde_json::ser::{Formatter, Serializer};
 use std::io;
 

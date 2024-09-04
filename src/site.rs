@@ -1,8 +1,7 @@
-use std::str::FromStr;
-
-use super::util::{Axis, Tagged};
+use crate::util::{Axis, Tagged};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
+use std::str::FromStr;
 
 /// Represetns a site in a lattice.
 ///

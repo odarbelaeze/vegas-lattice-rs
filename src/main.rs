@@ -1,16 +1,15 @@
 extern crate serde;
 extern crate serde_json;
 extern crate vegas_lattice;
-
+use clap::parser::ValuesRef;
+use clap::{Arg, ArgAction, Command};
 use std::error::Error;
 use std::fs::File;
 use std::io::{stdin, Read};
 use std::path::Path;
+use vegas_lattice::{error::Result, io, Alloy, Axis, Lattice, Mask};
 
-use clap::{Arg, ArgAction, Command};
-use vegas_lattice::{io, Alloy, Axis, Lattice, Mask};
-
-fn read(input: Option<&str>) -> Result<Lattice, Box<dyn Error>> {
+fn read(input: Option<&str>) -> Result<Lattice> {
     let mut data = String::new();
     if let Some(filename) = input {
         let mut file = File::open(filename)?;
@@ -30,7 +29,7 @@ fn write_pretty(lattice: Lattice) {
     println!("{}", io::to_string_lattice(&lattice).unwrap());
 }
 
-fn check_error(res: Result<(), Box<dyn Error>>) {
+fn check_error(res: Result<()>) {
     if let Err(e) = res {
         eprintln!("Error: {}", e);
         if let Some(source) = e.source() {
@@ -41,24 +40,19 @@ fn check_error(res: Result<(), Box<dyn Error>>) {
 
 // Commands over here
 
-fn check(input: Option<&str>) -> Result<(), Box<dyn Error>> {
+fn check(input: Option<&str>) -> Result<()> {
     let lattice = read(input)?;
     write(lattice);
     Ok(())
 }
 
-fn pretty(input: Option<&str>) -> Result<(), Box<dyn Error>> {
+fn pretty(input: Option<&str>) -> Result<()> {
     let lattice = read(input)?;
     write_pretty(lattice);
     Ok(())
 }
 
-fn drop(
-    input: Option<&str>,
-    drop_x: bool,
-    drop_y: bool,
-    drop_z: bool,
-) -> Result<(), Box<dyn Error>> {
+fn drop(input: Option<&str>, drop_x: bool, drop_y: bool, drop_z: bool) -> Result<()> {
     let mut lattice = read(input)?;
     if drop_x {
         lattice = lattice.drop(Axis::X);
@@ -78,7 +72,7 @@ fn expand(
     along_x: Option<&usize>,
     along_y: Option<&usize>,
     along_z: Option<&usize>,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let mut lattice = read(input)?;
     if let Some(size) = along_x {
         lattice = lattice.expand_along(Axis::X, *size);
@@ -93,11 +87,7 @@ fn expand(
     Ok(())
 }
 
-fn alloy(
-    input: Option<&str>,
-    source: &str,
-    targets: Vec<(&str, u32)>,
-) -> Result<(), Box<dyn Error>> {
+fn alloy(input: Option<&str>, source: &str, targets: Vec<(&str, u32)>) -> Result<()> {
     let alloy = Alloy::from_targets(targets);
     let mut lattice = read(input)?;
     lattice = lattice.alloy_sites(source, alloy);
@@ -105,7 +95,7 @@ fn alloy(
     Ok(())
 }
 
-fn mask(input: Option<&str>, path: &str, ppu: f64) -> Result<(), Box<dyn Error>> {
+fn mask(input: Option<&str>, path: &str, ppu: f64) -> Result<()> {
     let mask = Mask::new(Path::new(&path), ppu)?;
     let mut lattice = read(input)?;
     lattice = lattice.apply_mask(mask);
@@ -113,7 +103,7 @@ fn mask(input: Option<&str>, path: &str, ppu: f64) -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
-fn into(input: Option<&str>, format: &str) -> Result<(), Box<dyn Error>> {
+fn into(input: Option<&str>, format: &str) -> Result<()> {
     let lattice = read(input)?;
     match format {
         "tsv" => {
@@ -292,7 +282,7 @@ fn main() {
         );
 
     let matches = cmd.get_matches();
-    let result: Result<(), Box<dyn Error>> = match matches.subcommand() {
+    let result: Result<()> = match matches.subcommand() {
         Some(("sc", sub_matches)) => {
             let a = sub_matches.get_one::<f64>("a").unwrap();
             let lattice = Lattice::sc(*a);
@@ -336,18 +326,17 @@ fn main() {
         Some(("alloy", sub_matches)) => {
             let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
             let source = sub_matches.get_one::<String>("source").unwrap();
-            if let Some(target) = sub_matches.get_many::<String>("target") {
-                let kinds: Vec<_> = target.clone().step_by(2).map(|s| s.as_str()).collect();
-                let ratios: Vec<_> = target
-                    .skip(1)
-                    .step_by(2)
-                    .map(|s| s.parse::<u32>().unwrap())
-                    .collect();
-                let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
-                alloy(input, source, target)
-            } else {
-                Err("No target provided".into())
-            }
+            let targets = sub_matches
+                .get_many::<String>("target")
+                .unwrap_or(ValuesRef::default());
+            let kinds: Vec<_> = targets.clone().step_by(2).map(|s| s.as_str()).collect();
+            let ratios: Vec<_> = targets
+                .skip(1)
+                .step_by(2)
+                .map(|s| s.parse::<u32>().unwrap())
+                .collect();
+            let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
+            alloy(input, source, target)
         }
         Some(("mask", sub_matches)) => {
             let path = sub_matches.get_one::<String>("mask").unwrap();

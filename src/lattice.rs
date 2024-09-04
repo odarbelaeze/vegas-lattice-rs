@@ -1,16 +1,14 @@
 //! Lattice data structure
+use crate::alloy::Alloy;
+use crate::error::VegasLatticeError;
+use crate::mask::Mask;
+use crate::site::Site;
+use crate::util::Axis;
+use crate::vertex::Vertex;
+use rand::thread_rng;
+use serde::{Deserialize, Serialize};
 use std::iter::repeat;
 use std::str::FromStr;
-
-use rand::thread_rng;
-
-use super::alloy::Alloy;
-use super::error::LatticeError;
-use super::mask::Mask;
-use super::site::Site;
-use super::util::Axis;
-use super::vertex::Vertex;
-use serde::{Deserialize, Serialize};
 
 /// A lattice is a collection of sites and vertices.
 ///
@@ -155,12 +153,12 @@ impl Lattice {
     }
 
     /// Validates the lattice
-    pub fn validate(self) -> Result<Self, LatticeError> {
+    pub fn validate(self) -> Result<Self, VegasLatticeError> {
         if !self.are_vertices_consistent() {
-            return Err(LatticeError::InconsistentVertices);
+            return Err(VegasLatticeError::InconsistentVertices);
         }
         if self.size.0 < 0.0 || self.size.1 < 0.0 || self.size.2 < 0.0 {
-            return Err(LatticeError::NegativeSize);
+            return Err(VegasLatticeError::NegativeSize);
         }
         Ok(self)
     }
@@ -257,7 +255,7 @@ impl Lattice {
 }
 
 impl FromStr for Lattice {
-    type Err = LatticeError;
+    type Err = VegasLatticeError;
     fn from_str(source: &str) -> Result<Lattice, Self::Err> {
         let lattice: Lattice = serde_json::from_str(source)?;
         lattice.validate()

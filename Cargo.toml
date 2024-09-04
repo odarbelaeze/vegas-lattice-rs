@@ -1,6 +1,6 @@
 [package]
 name = "vegas-lattice"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Oscar David Arbeláez Echeverri <oscar@arbelaez.dev>"]
 description = "CLI and library to work with lattices"
 documentation = "https://docs.rs/vegas-lattice"
@@ -12,14 +12,10 @@ categories = ["command-line-utilities", "science", "simulation"]
 license-file = "LICENSE.txt"
 edition = "2021"
 
-[badges]
-is-it-maintained-issue-resolution = { repository = "odarbelaeze/vegas-lattice-rs" }
-is-it-maintained-open-issues = { repository = "odarbelaeze/vegas-lattice-rs" }
-maintenance = { status = "actively-developed" }
-
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 image = "0.24"
 rand = "0.8"
 clap = { version = "4.5.16", features = ["cargo"] }
+thiserror = "1.0.63"
