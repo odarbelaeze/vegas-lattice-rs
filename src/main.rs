@@ -2,7 +2,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate vegas_lattice;
 use clap::parser::ValuesRef;
-use clap::{Arg, ArgAction, Command};
+use clap::{crate_authors, crate_name, crate_version, Arg, ArgAction, Command};
 use std::error::Error;
 use std::fs::File;
 use std::io::{stdin, Read};
@@ -124,10 +124,11 @@ fn into(input: Option<&str>, format: &str) -> Result<()> {
 }
 
 fn main() {
-    let cmd = Command::new("vegas-lattice")
-        .bin_name("vegas-lattice")
+    let cmd = Command::new(crate_name!())
+        .bin_name(crate_name!())
         .about("Vegas lattice")
-        .version("0.6.0")
+        .version(crate_version!())
+        .author(crate_authors!())
         .long_about("Vegas lattice helps you manipulate lattice structures.")
         .subcommand_required(true)
         .subcommand(
