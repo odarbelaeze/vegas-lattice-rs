@@ -105,7 +105,7 @@
 //! ```rust
 //! use vegas_lattice::{Alloy, Lattice};
 //!
-//! let lattice = Lattice::sc(1.0).alloy_sites("A", Alloy::new(vec!["B", "C"], vec![50, 50]));
+//! let lattice = Lattice::sc(1.0).alloy_sites("A", Alloy::try_new(vec!["B", "C"], vec![50, 50]).unwrap());
 //! assert_eq!(lattice.sites().len(), 1);
 //! assert!(lattice.sites()[0].kind() == "B" || lattice.sites()[0].kind() == "C");
 //! ```

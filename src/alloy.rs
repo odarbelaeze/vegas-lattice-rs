@@ -12,7 +12,7 @@ use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
 /// ```rust
 /// use vegas_lattice::Alloy;
 ///
-/// let alloy = Alloy::new(vec!["Fe", "Ni"], vec![1, 2]);
+/// let alloy = Alloy::try_new(vec!["Fe", "Ni"], vec![1, 2]).unwrap();
 /// let kind = alloy.pick(&mut rand::thread_rng());
 ///
 /// assert!(kind == "Fe" || kind == "Ni");
