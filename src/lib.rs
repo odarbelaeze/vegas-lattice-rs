@@ -81,8 +81,6 @@
 //! materials by drawing an image of them.
 //!
 //! ```rust
-//! extern crate rand;
-//!
 //! use vegas_lattice::{Lattice, Mask};
 //! use rand::thread_rng;
 //! use std::path::Path;
@@ -110,12 +108,6 @@
 //! assert_eq!(lattice.sites().len(), 1);
 //! assert!(lattice.sites()[0].kind() == "B" || lattice.sites()[0].kind() == "C");
 //! ```
-
-extern crate image;
-extern crate rand;
-extern crate serde;
-extern crate serde_json;
-extern crate thiserror;
 
 pub mod error;
 pub mod io;

@@ -1,6 +1,3 @@
-extern crate serde;
-extern crate serde_json;
-extern crate vegas_lattice;
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 use std::error::Error;
 use std::fs::File;
