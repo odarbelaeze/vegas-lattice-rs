@@ -1,6 +1,6 @@
 [package]
 name = "vegas-lattice"
-version = "0.7.1"
+version = "0.8.0"
 authors = ["Oscar David Arbeláez Echeverri <oscar@arbelaez.dev>"]
 description = "CLI and library to work with lattices"
 documentation = "https://docs.rs/vegas-lattice"
@@ -17,5 +17,5 @@ serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 image = "0.24"
 rand = "0.8"
-clap = { version = "4.5.16", features = ["cargo"] }
+clap = { version = "4.5.16", features = ["cargo", "derive"] }
 thiserror = "1.0.63"

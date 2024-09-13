@@ -1,6 +1,3 @@
-extern crate serde;
-extern crate serde_json;
-
 use serde::{Deserialize, Serialize};
 use serde_json::Error;
 

@@ -1,6 +1,4 @@
 /// Public API tests for lattice components: Site, Vertex, Lattice
-extern crate vegas_lattice;
-
 use vegas_lattice::Lattice;
 
 #[test]

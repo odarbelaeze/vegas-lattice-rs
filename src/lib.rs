@@ -42,9 +42,9 @@
 //! lattice and apply the following operation:
 //!
 //! ```rust
-//! use vegas_lattice::{Axis, Lattice};
+//! use vegas_lattice::Lattice;
 //!
-//! let lattice = Lattice::sc(1.0).expand_along(Axis::X, 2);
+//! let lattice = Lattice::sc(1.0).expand_x(2);
 //!
 //! assert_eq!(lattice.size(), (2.0, 1.0, 1.0));
 //! assert_eq!(lattice.sites().len(), 2);
@@ -65,9 +65,9 @@
 //! did before:
 //!
 //! ```rust
-//! use vegas_lattice::{Axis, Lattice};
+//! use vegas_lattice::Lattice;
 //!
-//! let lattice = Lattice::sc(1.0).drop(Axis::X);
+//! let lattice = Lattice::sc(1.0).drop_x();
 //! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
 //! assert_eq!(lattice.sites().len(), 1);
 //! assert_eq!(lattice.vertices().len(), 2);
@@ -81,16 +81,14 @@
 //! materials by drawing an image of them.
 //!
 //! ```rust
-//! extern crate rand;
-//!
-//! use vegas_lattice::{Axis, Lattice, Mask};
+//! use vegas_lattice::{Lattice, Mask};
 //! use rand::thread_rng;
 //! use std::path::Path;
 //!
 //! let lattice = Lattice::sc(1.0)
-//!     .expand_along(Axis::X, 2)
-//!     .expand_along(Axis::Y, 2)
-//!     .expand_along(Axis::Z, 2)
+//!     .expand_x(2)
+//!     .expand_y(2)
+//!     .expand_z(2)
 //!     .apply_mask(Mask::new(Path::new("docs/pattern.png"), 100.0).unwrap());
 //! assert_eq!(lattice.size(), (2.0, 2.0, 2.0));
 //! assert!(lattice.sites().len() <= 8);
@@ -105,16 +103,11 @@
 //! ```rust
 //! use vegas_lattice::{Alloy, Lattice};
 //!
-//! let lattice = Lattice::sc(1.0).alloy_sites("A", Alloy::new(vec!["B", "C"], vec![50, 50]));
+//! let alloy = Alloy::try_new(vec!["B", "C"], vec![50, 50]).unwrap();
+//! let lattice = Lattice::sc(1.0).alloy_sites("A", alloy);
 //! assert_eq!(lattice.sites().len(), 1);
 //! assert!(lattice.sites()[0].kind() == "B" || lattice.sites()[0].kind() == "C");
 //! ```
-
-extern crate image;
-extern crate rand;
-extern crate serde;
-extern crate serde_json;
-extern crate thiserror;
 
 pub mod error;
 pub mod io;
@@ -130,5 +123,5 @@ pub use alloy::Alloy;
 pub use lattice::Lattice;
 pub use mask::Mask;
 pub use site::Site;
-pub use util::{Axis, Tagged};
+pub use util::Tagged;
 pub use vertex::Vertex;

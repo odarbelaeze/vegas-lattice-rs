@@ -11,20 +11,6 @@ pub enum Axis {
     Z,
 }
 
-impl Axis {
-    /// Returns a vector of tuples of axis names and their corresponding `Axis` enum
-    pub fn map(prefix: Option<String>) -> Vec<(String, Axis)> {
-        let axes = vec![("x", Axis::X), ("y", Axis::Y), ("z", Axis::Z)];
-        match prefix {
-            Some(p) => axes
-                .into_iter()
-                .map(|(k, i)| (format!("{}{}", p, k), i))
-                .collect(),
-            None => axes.into_iter().map(|(k, i)| (k.to_string(), i)).collect(),
-        }
-    }
-}
-
 pub fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
     if num < 0 {
         (

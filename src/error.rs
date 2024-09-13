@@ -1,5 +1,6 @@
 //! Error handling for the vegas lattice crate
 
+use rand::distributions::WeightedError;
 use serde_json::Error as SerdeError;
 use std::io::Error as IoError;
 use thiserror::Error;
@@ -17,6 +18,10 @@ pub enum VegasLatticeError {
     InconsistentVertices,
     #[error("negative size")]
     NegativeSize,
+    #[error("inconsistent weights")]
+    InconsistentWeights(#[from] WeightedError),
+    #[error("invalid ratios")]
+    InvalidRatios,
 }
 
 /// Result type for the vegas lattice crate
