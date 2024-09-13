@@ -1,18 +1,17 @@
 extern crate serde;
 extern crate serde_json;
 extern crate vegas_lattice;
-use clap::parser::ValuesRef;
-use clap::{crate_authors, crate_name, crate_version, Arg, ArgAction, Command};
+use clap::{ArgAction, Parser, Subcommand, ValueEnum};
 use std::error::Error;
 use std::fs::File;
 use std::io::{stdin, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use vegas_lattice::{error::Result, io, Alloy, Lattice, Mask};
 
-fn read(input: Option<&str>) -> Result<Lattice> {
+fn read(input: Option<&Path>) -> Result<Lattice> {
     let mut data = String::new();
-    if let Some(filename) = input {
-        let mut file = File::open(filename)?;
+    if let Some(path) = input {
+        let mut file = File::open(path)?;
         file.read_to_string(&mut data)?;
     } else {
         stdin().read_to_string(&mut data)?;
@@ -40,19 +39,19 @@ fn check_error(res: Result<()>) {
 
 // Commands over here
 
-fn check(input: Option<&str>) -> Result<()> {
+fn check(input: Option<&Path>) -> Result<()> {
     let lattice = read(input)?;
     write(lattice);
     Ok(())
 }
 
-fn pretty(input: Option<&str>) -> Result<()> {
+fn pretty(input: Option<&Path>) -> Result<()> {
     let lattice = read(input)?;
     write_pretty(lattice);
     Ok(())
 }
 
-fn drop(input: Option<&str>, drop_x: bool, drop_y: bool, drop_z: bool) -> Result<()> {
+fn drop(input: Option<&Path>, drop_x: bool, drop_y: bool, drop_z: bool) -> Result<()> {
     let mut lattice = read(input)?;
     if drop_x {
         lattice = lattice.drop_x();
@@ -68,285 +67,207 @@ fn drop(input: Option<&str>, drop_x: bool, drop_y: bool, drop_z: bool) -> Result
 }
 
 fn expand(
-    input: Option<&str>,
-    along_x: Option<&usize>,
-    along_y: Option<&usize>,
-    along_z: Option<&usize>,
+    input: Option<&Path>,
+    along_x: Option<usize>,
+    along_y: Option<usize>,
+    along_z: Option<usize>,
 ) -> Result<()> {
     let mut lattice = read(input)?;
     lattice = lattice.expand(
-        along_x.copied().unwrap_or(1),
-        along_y.copied().unwrap_or(1),
-        along_z.copied().unwrap_or(1),
+        along_x.unwrap_or(1),
+        along_y.unwrap_or(1),
+        along_z.unwrap_or(1),
     );
     write(lattice);
     Ok(())
 }
 
-fn alloy(input: Option<&str>, source: &str, targets: Vec<(&str, u32)>) -> Result<()> {
-    let alloy = Alloy::from_targets(targets);
+fn alloy(input: Option<&Path>, source: &str, targets: Vec<String>) -> Result<()> {
+    let kinds: Vec<_> = targets.iter().step_by(2).map(|s| s.as_str()).collect();
+    let ratios: Vec<_> = targets
+        .iter()
+        .skip(1)
+        .step_by(2)
+        .map(|s| s.parse::<u32>().unwrap())
+        .collect();
+    let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
+    let alloy = Alloy::try_from_targets(target)?;
     let mut lattice = read(input)?;
     lattice = lattice.alloy_sites(source, alloy);
     write(lattice);
     Ok(())
 }
 
-fn mask(input: Option<&str>, path: &str, ppu: f64) -> Result<()> {
-    let mask = Mask::new(Path::new(&path), ppu)?;
+fn mask(input: Option<&Path>, path: &Path, ppu: f64) -> Result<()> {
+    let mask = Mask::new(path, ppu)?;
     let mut lattice = read(input)?;
     lattice = lattice.apply_mask(mask);
     write(lattice);
     Ok(())
 }
 
-fn into(input: Option<&str>, format: &str) -> Result<()> {
+fn into(input: Option<&Path>, format: Format) -> Result<()> {
     let lattice = read(input)?;
     match format {
-        "tsv" => {
+        Format::Tsv => {
             for site in lattice.sites().iter() {
                 let (x, y, z) = site.position();
                 println!("{}\t{}\t{}\t{}", x, y, z, site.kind())
             }
         }
-        "xyz" => {
+        Format::Xyz => {
             for site in lattice.sites().iter() {
                 let (x, y, z) = site.position();
                 println!("{} {} {} {}", site.kind(), x, y, z)
             }
         }
-        _ => (),
     }
     Ok(())
 }
 
-fn main() {
-    let cmd = Command::new(crate_name!())
-        .bin_name(crate_name!())
-        .about("Vegas lattice")
-        .version(crate_version!())
-        .author(crate_authors!())
-        .long_about("Vegas lattice helps you manipulate lattice structures.")
-        .subcommand_required(true)
-        .subcommand(
-            Command::new("sc").about("Simple cubic lattice").arg(
-                Arg::new("a")
-                    .long("lattice-parameter")
-                    .short('a')
-                    .default_value("1.0")
-                    .value_parser(|s: &str| s.parse::<f64>())
-                    .help("Lattice parameter"),
-            ),
-        )
-        .subcommand(
-            Command::new("bcc")
-                .about("Body centered cubic lattice")
-                .arg(
-                    Arg::new("a")
-                        .long("lattice-parameter")
-                        .short('a')
-                        .default_value("1.0")
-                        .value_parser(|s: &str| s.parse::<f64>())
-                        .help("Lattice parameter"),
-                ),
-        )
-        .subcommand(
-            Command::new("fcc")
-                .about("Face centered cubic lattice")
-                .arg(
-                    Arg::new("a")
-                        .long("lattice-parameter")
-                        .short('a')
-                        .default_value("1.0")
-                        .value_parser(|s: &str| s.parse::<f64>())
-                        .help("Lattice parameter"),
-                ),
-        )
-        .subcommand(
-            Command::new("check")
-                .about("Check lattice")
-                .arg(Arg::new("input").help("Input file").required(false)),
-        )
-        .subcommand(
-            Command::new("pretty")
-                .about("Pretty print lattice")
-                .arg(Arg::new("input").help("Input file").required(false)),
-        )
-        .subcommand(
-            Command::new("drop")
-                .about("Drop periodic boundary conditions")
-                .arg(Arg::new("input").help("Input file").required(false))
-                .arg(
-                    Arg::new("x")
-                        .short('x')
-                        .long("along-x")
-                        .num_args(0)
-                        .default_value("false")
-                        .default_missing_value("true")
-                        .value_parser(|s: &str| s.parse::<bool>())
-                        .help("Drop periodic boundary conditions along x-axis"),
-                )
-                .arg(
-                    Arg::new("y")
-                        .short('y')
-                        .long("along-y")
-                        .num_args(0)
-                        .default_value("false")
-                        .default_missing_value("true")
-                        .value_parser(|s: &str| s.parse::<bool>())
-                        .help("Drop periodic boundary conditions along y-axis"),
-                )
-                .arg(
-                    Arg::new("z")
-                        .short('z')
-                        .long("along-z")
-                        .num_args(0)
-                        .default_value("false")
-                        .default_missing_value("true")
-                        .value_parser(|s: &str| s.parse::<bool>())
-                        .help("Drop periodic boundary conditions along z-axis"),
-                ),
-        )
-        .subcommand(
-            Command::new("expand")
-                .about("Expand lattice")
-                .arg(Arg::new("input").help("Input file").required(false))
-                .arg(
-                    Arg::new("x")
-                        .short('x')
-                        .long("along-x")
-                        .value_parser(|s: &str| s.parse::<usize>())
-                        .help("Expand lattice along x-axis"),
-                )
-                .arg(
-                    Arg::new("y")
-                        .short('y')
-                        .long("along-y")
-                        .value_parser(|s: &str| s.parse::<usize>())
-                        .help("Expand lattice along y-axis"),
-                )
-                .arg(
-                    Arg::new("z")
-                        .short('z')
-                        .long("along-z")
-                        .value_parser(|s: &str| s.parse::<usize>())
-                        .help("Expand lattice along z-axis"),
-                ),
-        )
-        .subcommand(
-            Command::new("alloy")
-                .about("Alloy lattice")
-                .arg(Arg::new("source").help("Source kind").required(true))
-                .arg(
-                    Arg::new("target")
-                        .short('t')
-                        .long("target")
-                        .help("Target kind with is corresponding ratio")
-                        .value_names(["target", "ratio"])
-                        .action(ArgAction::Append)
-                        .num_args(2),
-                )
-                .arg(
-                    Arg::new("input")
-                        .help("Input file")
-                        .required(false)
-                        .last(true),
-                ),
-        )
-        .subcommand(
-            Command::new("mask")
-                .about("Mask lattice")
-                .arg(Arg::new("mask").help("Mask file").required(true))
-                .arg(Arg::new("input").help("Input file").required(false))
-                .arg(
-                    Arg::new("ppu")
-                        .short('p')
-                        .long("ppu")
-                        .default_value("10")
-                        .value_parser(|s: &str| s.parse::<f64>())
-                        .help("Pixels per unit"),
-                ),
-        )
-        .subcommand(
-            Command::new("into")
-                .about("Convert lattice into a different format")
-                .arg(
-                    Arg::new("format")
-                        .help("Output format")
-                        .required(true)
-                        .value_parser(["xyz", "tsv"]),
-                )
-                .arg(Arg::new("input").help("Input file").required(false)),
-        );
+#[derive(Debug, Clone, ValueEnum)]
+enum Format {
+    /// XYZ file format
+    Xyz,
+    /// TSV file format
+    Tsv,
+}
 
-    let matches = cmd.get_matches();
-    let result: Result<()> = match matches.subcommand() {
-        Some(("sc", sub_matches)) => {
-            let a = sub_matches.get_one::<f64>("a").unwrap();
-            let lattice = Lattice::sc(*a);
+#[derive(Debug, Subcommand)]
+enum SubCommand {
+    /// Create a simple cubic lattice
+    Sc {
+        #[arg(long = "lattice-parameter", short, default_value = "1.0")]
+        /// Lattice parameter
+        a: f64,
+    },
+    /// Create a body centered cubic lattice
+    Bcc {
+        #[arg(long = "lattice-parameter", short, default_value = "1.0")]
+        /// Lattice parameter
+        a: f64,
+    },
+    /// Create a face centered cubic lattice
+    Fcc {
+        #[arg(long = "lattice-parameter", short, default_value = "1.0")]
+        /// Lattice parameter
+        a: f64,
+    },
+    /// Check lattice
+    Check {
+        /// Input file
+        input: Option<PathBuf>,
+    },
+    /// Pretty print lattice
+    Pretty {
+        /// Input file
+        input: Option<PathBuf>,
+    },
+    /// Drop periodic boundary conditions
+    Drop {
+        /// Input file
+        input: Option<PathBuf>,
+        #[arg(short, long = "along-x", default_value = "false")]
+        /// Drop periodic boundary conditions along x-axis
+        x: bool,
+        #[arg(short, long = "along-y", default_value = "false")]
+        /// Drop periodic boundary conditions along y-axis
+        y: bool,
+        #[arg(short, long = "along-z", default_value = "false")]
+        /// Drop periodic boundary conditions along z-axis
+        z: bool,
+    },
+    /// Expand lattice
+    Expand {
+        /// Input file
+        input: Option<PathBuf>,
+        #[arg(short, long = "along-x")]
+        /// Expand lattice along x-axis
+        x: Option<usize>,
+        #[arg(short, long = "along-y")]
+        /// Expand lattice along y-axis
+        y: Option<usize>,
+        #[arg(short, long = "along-z")]
+        /// Expand lattice along z-axis
+        z: Option<usize>,
+    },
+    /// Create an alloy
+    Alloy {
+        /// Source kind
+        source: String,
+        #[arg(
+            short,
+            long,
+            value_names = ["target", "ratio"],
+            number_of_values = 2,
+            action = ArgAction::Append,
+        )]
+        /// Target kind with is corresponding ratio
+        target: Vec<String>,
+        /// Input file
+        input: Option<PathBuf>,
+    },
+    /// Apply a mask
+    Mask {
+        /// Mask file
+        mask: PathBuf,
+        /// Input file
+        input: Option<PathBuf>,
+        #[arg(short, long, default_value = "10")]
+        /// Pixels per unit
+        ppu: f64,
+    },
+    /// Convert lattice into a different format
+    Into {
+        /// Output format
+        format: Format,
+        /// Input file
+        input: Option<PathBuf>,
+    },
+}
+
+#[derive(Debug, Parser)]
+#[command(author, version, about, long_about)]
+struct Cli {
+    #[clap(subcommand)]
+    subcmd: SubCommand,
+}
+
+fn main() {
+    let cli = Cli::parse();
+
+    let result = match cli.subcmd {
+        SubCommand::Sc { a } => {
+            let lattice = Lattice::sc(a);
             write(lattice);
             Ok(())
         }
-        Some(("bcc", sub_matches)) => {
-            let a = sub_matches.get_one::<f64>("a").unwrap();
-            let lattice = Lattice::bcc(*a);
+        SubCommand::Bcc { a } => {
+            let lattice = Lattice::bcc(a);
             write(lattice);
             Ok(())
         }
-        Some(("fcc", sub_matches)) => {
-            let a = sub_matches.get_one::<f64>("a").unwrap();
-            let lattice = Lattice::fcc(*a);
+        SubCommand::Fcc { a } => {
+            let lattice = Lattice::fcc(a);
             write(lattice);
             Ok(())
         }
-        Some(("check", sub_matches)) => {
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            check(input)
-        }
-        Some(("pretty", sub_matches)) => {
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            pretty(input)
-        }
-        Some(("drop", sub_matches)) => {
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            let drop_x = sub_matches.get_one::<bool>("x").unwrap();
-            let drop_y = sub_matches.get_one::<bool>("y").unwrap();
-            let drop_z = sub_matches.get_one::<bool>("z").unwrap();
-            drop(input, *drop_x, *drop_y, *drop_z)
-        }
-        Some(("expand", sub_matches)) => {
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            let along_x = sub_matches.get_one::<usize>("x");
-            let along_y = sub_matches.get_one::<usize>("y");
-            let along_z = sub_matches.get_one::<usize>("z");
-            expand(input, along_x, along_y, along_z)
-        }
-        Some(("alloy", sub_matches)) => {
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            let source = sub_matches.get_one::<String>("source").unwrap();
-            let targets = sub_matches
-                .get_many::<String>("target")
-                .unwrap_or(ValuesRef::default());
-            let kinds: Vec<_> = targets.clone().step_by(2).map(|s| s.as_str()).collect();
-            let ratios: Vec<_> = targets
-                .skip(1)
-                .step_by(2)
-                .map(|s| s.parse::<u32>().unwrap())
-                .collect();
-            let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
-            alloy(input, source, target)
-        }
-        Some(("mask", sub_matches)) => {
-            let path = sub_matches.get_one::<String>("mask").unwrap();
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            let ppu = sub_matches.get_one::<f64>("ppu").unwrap();
-            mask(input, path, *ppu)
-        }
-        Some(("into", sub_matches)) => {
-            let format = sub_matches.get_one::<String>("format").unwrap();
-            let input = sub_matches.get_one::<String>("input").map(|s| s.as_str());
-            into(input, format)
-        }
-        _ => Ok(()),
+        SubCommand::Check { input } => check(input.as_deref()),
+        SubCommand::Pretty { input } => pretty(input.as_deref()),
+        SubCommand::Drop { input, x, y, z } => drop(input.as_deref(), x, y, z),
+        SubCommand::Expand { input, x, y, z } => expand(input.as_deref(), x, y, z),
+        SubCommand::Alloy {
+            source,
+            target,
+            input,
+        } => alloy(input.as_deref(), &source, target),
+        SubCommand::Mask {
+            mask: mask_path,
+            input,
+            ppu,
+        } => mask(input.as_deref(), &mask_path, ppu),
+        SubCommand::Into { format, input } => into(input.as_deref(), format),
     };
+
     check_error(result);
 }
