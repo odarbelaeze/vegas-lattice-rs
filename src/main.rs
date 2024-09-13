@@ -74,15 +74,11 @@ fn expand(
     along_z: Option<&usize>,
 ) -> Result<()> {
     let mut lattice = read(input)?;
-    if let Some(size) = along_x {
-        lattice = lattice.expand_x(*size);
-    }
-    if let Some(size) = along_y {
-        lattice = lattice.expand_y(*size);
-    }
-    if let Some(size) = along_z {
-        lattice = lattice.expand_z(*size);
-    }
+    lattice = lattice.expand(
+        along_x.copied().unwrap_or(1),
+        along_y.copied().unwrap_or(1),
+        along_z.copied().unwrap_or(1),
+    );
     write(lattice);
     Ok(())
 }

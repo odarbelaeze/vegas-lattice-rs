@@ -156,7 +156,7 @@ impl Lattice {
     }
 
     /// Drops all the vertices that are periodic along the given axis
-    fn drop(mut self, axis: Axis) -> Self {
+    fn drop_along(mut self, axis: Axis) -> Self {
         self.vertices.retain(|v| {
             let delta = v.delta();
             match axis {
@@ -170,17 +170,22 @@ impl Lattice {
 
     /// Drop periodic boundary conditions along the x axis
     pub fn drop_x(self) -> Self {
-        self.drop(Axis::X)
+        self.drop_along(Axis::X)
     }
 
     /// Drop periodic boundary conditions along the y axis
     pub fn drop_y(self) -> Self {
-        self.drop(Axis::Y)
+        self.drop_along(Axis::Y)
     }
 
     /// Drop periodic boundary conditions along the z axis
     pub fn drop_z(self) -> Self {
-        self.drop(Axis::Z)
+        self.drop_along(Axis::Z)
+    }
+
+    /// Drop periodic boundary conditions along all axes
+    pub fn drop_all(self) -> Self {
+        self.drop_x().drop_y().drop_z()
     }
 
     #[inline]
@@ -236,6 +241,16 @@ impl Lattice {
     /// Expand lattice along the z axis
     pub fn expand_z(self, amount: usize) -> Self {
         self.expand_along(Axis::Z, amount)
+    }
+
+    /// Expand lattice by the same ammount along all axes
+    pub fn expand_all(self, amount: usize) -> Self {
+        self.expand_x(amount).expand_y(amount).expand_z(amount)
+    }
+
+    /// Expand lattice by the given ammount along all axes
+    pub fn expand(self, x: usize, y: usize, z: usize) -> Self {
+        self.expand_x(x).expand_y(y).expand_z(z)
     }
 
     /// Removes sites from the lattice according to the given mask
