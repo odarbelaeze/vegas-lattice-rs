@@ -30,9 +30,9 @@ use std::str::FromStr;
 /// Here's how to move a vertex along an axis:
 ///
 /// ```rust
-/// use vegas_lattice::{Vertex, Axis};
+/// use vegas_lattice::Vertex;
 ///
-/// let vertex = Vertex::new(0, 1, (0, 0, 1)).move_along(Axis::Z, 1, 2, 3);
+/// let vertex = Vertex::new(0, 1, (0, 0, 1)).move_z(1, 2, 3);
 /// assert_eq!(vertex.source(), 2);
 /// assert_eq!(vertex.target(), 5);
 /// assert_eq!(vertex.delta(), (0, 0, 0));
@@ -84,19 +84,19 @@ impl Vertex {
         self.delta
     }
 
-    /// Returns the `delta` of the vertex alogn a given axis
-    pub fn delta_along(&self, axis: Axis) -> i32 {
+    /// Chagges the tags of the vertex
+    pub fn with_tags(mut self, tags: Vec<&str>) -> Self {
+        self.tags = Some(tags.iter().map(|s| s.to_string()).collect());
+        self
+    }
+
+    #[inline]
+    fn delta_along(&self, axis: Axis) -> i32 {
         match axis {
             Axis::X => self.delta.0,
             Axis::Y => self.delta.1,
             Axis::Z => self.delta.2,
         }
-    }
-
-    /// Chagges the tags of the vertex
-    pub fn with_tags(mut self, tags: Vec<&str>) -> Self {
-        self.tags = Some(tags.iter().map(|s| s.to_string()).collect());
-        self
     }
 
     /// Move the vertex along a given axis by a given amount
@@ -117,7 +117,7 @@ impl Vertex {
     /// * `amount` - The number of units to move the vertex
     /// * `nsites` - The number of sites in the original lattice
     /// * `limit` - The total number of units the lattice will be grown by
-    pub fn move_along(mut self, axis: Axis, amount: usize, nsites: usize, limit: usize) -> Self {
+    fn move_along(mut self, axis: Axis, amount: usize, nsites: usize, limit: usize) -> Self {
         debug_assert!(amount < limit);
         let distance = amount * nsites;
         let new_nsites = limit * nsites;
@@ -133,6 +133,21 @@ impl Vertex {
             Axis::Z => self.delta.2 = delta,
         };
         self
+    }
+
+    /// Move along the x axis
+    pub fn move_x(self, amount: usize, nsites: usize, limit: usize) -> Self {
+        self.move_along(Axis::X, amount, nsites, limit)
+    }
+
+    /// Move along the y axis
+    pub fn move_y(self, amount: usize, nsites: usize, limit: usize) -> Self {
+        self.move_along(Axis::Y, amount, nsites, limit)
+    }
+
+    /// Move along the z axis
+    pub fn move_z(self, amount: usize, nsites: usize, limit: usize) -> Self {
+        self.move_along(Axis::Z, amount, nsites, limit)
     }
 
     /// Re-index the vertex

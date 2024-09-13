@@ -7,7 +7,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{stdin, Read};
 use std::path::Path;
-use vegas_lattice::{error::Result, io, Alloy, Axis, Lattice, Mask};
+use vegas_lattice::{error::Result, io, Alloy, Lattice, Mask};
 
 fn read(input: Option<&str>) -> Result<Lattice> {
     let mut data = String::new();
@@ -55,13 +55,13 @@ fn pretty(input: Option<&str>) -> Result<()> {
 fn drop(input: Option<&str>, drop_x: bool, drop_y: bool, drop_z: bool) -> Result<()> {
     let mut lattice = read(input)?;
     if drop_x {
-        lattice = lattice.drop(Axis::X);
+        lattice = lattice.drop_x();
     }
     if drop_y {
-        lattice = lattice.drop(Axis::Y);
+        lattice = lattice.drop_y();
     }
     if drop_z {
-        lattice = lattice.drop(Axis::Z);
+        lattice = lattice.drop_z();
     }
     write(lattice);
     Ok(())
@@ -75,13 +75,13 @@ fn expand(
 ) -> Result<()> {
     let mut lattice = read(input)?;
     if let Some(size) = along_x {
-        lattice = lattice.expand_along(Axis::X, *size);
+        lattice = lattice.expand_x(*size);
     }
     if let Some(size) = along_y {
-        lattice = lattice.expand_along(Axis::Y, *size);
+        lattice = lattice.expand_y(*size);
     }
     if let Some(size) = along_z {
-        lattice = lattice.expand_along(Axis::Z, *size);
+        lattice = lattice.expand_z(*size);
     }
     write(lattice);
     Ok(())
