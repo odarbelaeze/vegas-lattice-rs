@@ -1,4 +1,6 @@
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{stdin, Read};
@@ -118,6 +120,50 @@ fn into(input: Option<&Path>, format: Format) -> Result<()> {
                 println!("{} {} {} {}", site.kind(), x, y, z)
             }
         }
+        Format::Vampire => {
+            println!("# Unit cell size");
+            let (x, y, z) = lattice.size();
+            println!("{} {} {}", x, y, z);
+            println!("# Unit cell lattice vectors");
+            println!("{} {} {}", 1.0, 0.0, 0.0);
+            println!("{} {} {}", 0.0, 1.0, 0.0);
+            println!("{} {} {}", 0.0, 0.0, 1.0);
+            println!("# Atoms");
+            let mut index = 0;
+            let materials =
+                lattice
+                    .sites()
+                    .iter()
+                    .map(|s| s.kind())
+                    .fold(HashMap::new(), |mut acc, item| {
+                        if let Entry::Vacant(entry) = acc.entry(item) {
+                            entry.insert(index);
+                            index += 1;
+                        }
+                        acc
+                    });
+            println!("{} {}", lattice.sites().len(), materials.len());
+            for (i, site) in lattice.sites().iter().enumerate() {
+                let (x, y, z) = site.position();
+                let material_id = materials.get(&site.kind()).unwrap();
+                println!("{} {} {} {} {}", i, x, y, z, material_id);
+            }
+            println!("# Interactions");
+            println!("{} {}", lattice.vertices().len(), "isotropic");
+            for (i, vertex) in lattice.vertices().iter().enumerate() {
+                let (dx, dy, dz) = vertex.delta();
+                println!(
+                    "{} {} {} {} {} {} {}",
+                    i,
+                    vertex.source(),
+                    vertex.target(),
+                    dx,
+                    dy,
+                    dz,
+                    1.0
+                );
+            }
+        }
     }
     Ok(())
 }
@@ -128,6 +174,8 @@ enum Format {
     Xyz,
     /// TSV file format
     Tsv,
+    /// Vampire unitcell file format
+    Vampire,
 }
 
 #[derive(Debug, Subcommand)]
