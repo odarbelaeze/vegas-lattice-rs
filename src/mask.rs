@@ -14,7 +14,7 @@ use std::path::Path;
 /// use vegas_lattice::Mask;
 /// use std::path::Path;
 ///
-/// let mask = Mask::new(Path::new("docs/bpm.png"), 1.0).unwrap();
+/// let mask = Mask::try_new(Path::new("docs/bpm.png"), 1.0).unwrap();
 /// let keep = mask.keep(0.5, 0.5, &mut rand::thread_rng());
 ///
 /// assert!(keep || !keep);
