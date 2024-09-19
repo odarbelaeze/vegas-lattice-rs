@@ -1,4 +1,4 @@
-use crate::util::{Axis, Tagged};
+use crate::util::Tagged;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use std::str::FromStr;
@@ -61,13 +61,21 @@ impl Site {
         &self.kind
     }
 
-    /// Move the site along a given axis by a given distance
-    pub fn move_along(mut self, axis: Axis, distance: f64) -> Self {
-        match axis {
-            Axis::X => self.position.0 += distance,
-            Axis::Y => self.position.1 += distance,
-            Axis::Z => self.position.2 += distance,
-        };
+    /// Move along the x axis
+    pub fn move_x(mut self, distance: f64) -> Self {
+        self.position.0 += distance;
+        self
+    }
+
+    /// Move along the y axis
+    pub fn move_y(mut self, distance: f64) -> Self {
+        self.position.1 += distance;
+        self
+    }
+
+    /// Move along the z axis
+    pub fn move_z(mut self, distance: f64) -> Self {
+        self.position.2 += distance;
         self
     }
 
@@ -104,7 +112,7 @@ mod test {
 
     #[test]
     fn site_can_be_moved() {
-        let site = Site::new("Fe").move_along(super::Axis::X, 1.0);
+        let site = Site::new("Fe").move_x(1.0);
         assert_eq!(site.position, (1.0, 0.0, 0.0));
     }
 

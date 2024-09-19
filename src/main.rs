@@ -149,7 +149,7 @@ fn into(input: Option<&Path>, format: Format) -> Result<()> {
                 println!("{} {} {} {} {}", i, x, y, z, material_id);
             }
             println!("# Interactions");
-            println!("{} {}", lattice.vertices().len(), "isotropic");
+            println!("{} isotropic", lattice.vertices().len());
             for (i, vertex) in lattice.vertices().iter().enumerate() {
                 let (dx, dy, dz) = vertex.delta();
                 println!(
