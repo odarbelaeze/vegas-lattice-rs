@@ -2,7 +2,7 @@
 
 /// Represents a 3D axis
 #[derive(Debug, Clone, Copy)]
-pub enum Axis {
+pub(crate) enum Axis {
     /// The _x_ axis
     X,
     /// The _y_ axis
@@ -11,7 +11,7 @@ pub enum Axis {
     Z,
 }
 
-pub fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
+pub(crate) fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
     if num < 0 {
         (
             modulus as i32 + num % modulus as i32,

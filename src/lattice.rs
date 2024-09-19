@@ -206,7 +206,11 @@ impl Lattice {
         self.sites = (0..amount)
             .flat_map(|i| repeat(i).take(n_sites))
             .zip(self.sites().iter().cycle())
-            .map(|(index, site)| site.clone().move_along(axis, (index as f64) * size))
+            .map(|(index, site)| match axis {
+                Axis::X => site.clone().move_x((index as f64) * size),
+                Axis::Y => site.clone().move_y((index as f64) * size),
+                Axis::Z => site.clone().move_z((index as f64) * size),
+            })
             .collect();
 
         self.vertices = (0..amount)
