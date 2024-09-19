@@ -14,7 +14,7 @@ use std::path::Path;
 /// use vegas_lattice::Mask;
 /// use std::path::Path;
 ///
-/// let mask = Mask::new(Path::new("docs/bpm.png"), 1.0).unwrap();
+/// let mask = Mask::try_new(Path::new("docs/bpm.png"), 1.0).unwrap();
 /// let keep = mask.keep(0.5, 0.5, &mut rand::thread_rng());
 ///
 /// assert!(keep || !keep);
@@ -28,7 +28,7 @@ pub struct Mask {
 
 impl Mask {
     /// Create a new mask from a path and a pixels per unit ratio
-    pub fn new(path: &Path, ppu: f64) -> Result<Self, VegasLatticeError> {
+    pub fn try_new(path: &Path, ppu: f64) -> Result<Self, VegasLatticeError> {
         let img = image::open(path)?;
         Ok(Self {
             image: Box::new(img),

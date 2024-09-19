@@ -85,11 +85,12 @@
 //! use rand::thread_rng;
 //! use std::path::Path;
 //!
+//! let mask = Mask::try_new(Path::new("docs/pattern.png"), 100.0).unwrap();
 //! let lattice = Lattice::sc(1.0)
 //!     .expand_x(2)
 //!     .expand_y(2)
 //!     .expand_z(2)
-//!     .apply_mask(Mask::new(Path::new("docs/pattern.png"), 100.0).unwrap());
+//!     .apply_mask(mask);
 //! assert_eq!(lattice.size(), (2.0, 2.0, 2.0));
 //! assert!(lattice.sites().len() <= 8);
 //! assert!(lattice.vertices().len() <= 24);
