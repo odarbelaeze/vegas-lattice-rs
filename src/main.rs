@@ -96,7 +96,7 @@ fn alloy(input: Option<&Path>, source: &str, targets: Vec<String>) -> Result<()>
 }
 
 fn mask(input: Option<&Path>, path: &Path, ppu: f64) -> Result<()> {
-    let mask = Mask::new(path, ppu)?;
+    let mask = Mask::try_new(path, ppu)?;
     let mut lattice = read(input)?;
     lattice = lattice.apply_mask(mask);
     write(lattice);

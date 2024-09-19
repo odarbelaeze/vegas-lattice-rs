@@ -28,7 +28,7 @@ pub struct Mask {
 
 impl Mask {
     /// Create a new mask from a path and a pixels per unit ratio
-    pub fn new(path: &Path, ppu: f64) -> Result<Self, VegasLatticeError> {
+    pub fn try_new(path: &Path, ppu: f64) -> Result<Self, VegasLatticeError> {
         let img = image::open(path)?;
         Ok(Self {
             image: Box::new(img),

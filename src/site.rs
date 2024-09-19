@@ -57,8 +57,8 @@ impl Site {
     }
 
     /// Return the kind of the site
-    pub fn kind(&self) -> String {
-        self.kind.clone()
+    pub fn kind(&self) -> &str {
+        &self.kind
     }
 
     /// Move the site along a given axis by a given distance
