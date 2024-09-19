@@ -72,8 +72,8 @@ impl Site {
     }
 
     /// Changes the kind of the site
-    pub fn with_kind(mut self, kind: String) -> Self {
-        self.kind = kind;
+    pub fn with_kind(mut self, kind: &str) -> Self {
+        self.kind = kind.to_string();
         self
     }
 
@@ -110,7 +110,7 @@ mod test {
 
     #[test]
     fn site_can_be_changed() {
-        let site = Site::new("Fe").with_kind("Cu".to_string());
+        let site = Site::new("Fe").with_kind("Cu");
         assert_eq!(site.kind, "Cu");
     }
 

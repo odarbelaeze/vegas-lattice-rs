@@ -40,7 +40,7 @@ impl Alloy {
     }
 
     /// Picks a kind of atom from the alloy
-    pub fn pick<R: Rng>(&self, rng: &mut R) -> String {
-        self.kinds[self.weights.sample(rng)].clone()
+    pub fn pick<R: Rng>(&self, rng: &mut R) -> &str {
+        &self.kinds[self.weights.sample(rng)]
     }
 }
