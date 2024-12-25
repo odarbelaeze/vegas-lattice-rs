@@ -25,12 +25,12 @@ pub(crate) fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
 /// A trait for tagged objects
 pub trait Tagged {
     /// Returns the tags of the object
-    fn tags(&self) -> Option<&Vec<String>>;
+    fn tags(&self) -> Option<Vec<&str>>;
     /// Returns `true` if the object has the given tag
     fn has_tag(&self, tag: &str) -> bool {
         match self.tags() {
             None => false,
-            Some(tags) => tags.iter().any(|t| t == tag),
+            Some(tags) => tags.iter().any(|t| *t == tag),
         }
     }
 }

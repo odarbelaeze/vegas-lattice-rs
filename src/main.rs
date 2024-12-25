@@ -90,7 +90,7 @@ fn alloy(input: Option<&Path>, source: &str, targets: Vec<String>) -> Result<()>
         .map(|s| s.parse::<u32>().unwrap())
         .collect();
     let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
-    let alloy = Alloy::try_from_targets(target)?;
+    let alloy = Alloy::from_targets(target);
     let mut lattice = read(input)?;
     lattice = lattice.alloy_sites(source, alloy);
     write(lattice);

@@ -34,13 +34,33 @@ impl Alloy {
         Ok(Self { kinds, weights })
     }
 
-    pub fn try_from_targets(targets: Vec<(&str, u32)>) -> Result<Self> {
+    pub fn from_targets(targets: Vec<(&str, u32)>) -> Self {
         let (kinds, ratios): (Vec<_>, Vec<_>) = targets.into_iter().unzip();
-        Self::try_new(kinds, ratios)
+        Self::try_new(kinds, ratios).unwrap()
     }
 
     /// Picks a kind of atom from the alloy
     pub fn pick<R: Rng>(&self, rng: &mut R) -> &str {
         &self.kinds[self.weights.sample(rng)]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Alloy;
+
+    #[test]
+    fn test_alloy_can_be_created_from_kinds_and_ratios() {
+        let kinds = vec!["A", "B"];
+        let ratios = vec![50, 50];
+        let result = Alloy::try_new(kinds, ratios);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_alloy_can_be_created_from_targets() {
+        let targets = vec![("A", 100), ("B", 0)];
+        let alloy = Alloy::from_targets(targets);
+        assert_eq!(alloy.pick(&mut rand::thread_rng()), "A");
     }
 }
