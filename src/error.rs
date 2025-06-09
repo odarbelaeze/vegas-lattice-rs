@@ -1,6 +1,6 @@
 //! Error handling for the vegas lattice crate
 
-use rand::distributions::WeightedError;
+use rand::distr::weighted::Error as WeightedError;
 use serde_json::Error as SerdeError;
 use std::io::Error as IoError;
 use thiserror::Error;

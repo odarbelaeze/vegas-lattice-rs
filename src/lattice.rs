@@ -6,7 +6,7 @@ use crate::error::VegasLatticeError;
 use crate::mask::Mask;
 use crate::site::Site;
 use crate::vertex::Vertex;
-use rand::thread_rng;
+use rand::rng;
 use serde::{Deserialize, Serialize};
 use std::iter::repeat;
 use std::str::FromStr;
@@ -261,7 +261,7 @@ impl Lattice {
     ///
     /// TODO: This only removes points in the xy plane, and it should be generalized
     pub fn apply_mask(mut self, mask: Mask) -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         let site_mask: Vec<_> = self
             .sites
             .iter()
@@ -299,7 +299,7 @@ impl Lattice {
 
     /// Replaces the sites labeled as `source` with sites in the `target` alloy
     pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
         self.sites = self
             .sites
             .into_iter()

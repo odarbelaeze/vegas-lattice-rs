@@ -1,7 +1,7 @@
 //! Let's abstract an alloy
 
 use crate::error::{Result, VegasLatticeError};
-use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
+use rand::{distr::weighted::WeightedIndex, distr::Distribution, Rng};
 
 /// An alloy is a collection of kinds of atoms and their ratios
 ///
