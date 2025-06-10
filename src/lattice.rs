@@ -6,7 +6,7 @@ use crate::error::{Result, VegasLatticeError};
 use crate::mask::Mask;
 use crate::site::Site;
 use crate::vertex::Vertex;
-use rand::thread_rng;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter::repeat;
 use std::str::FromStr;
@@ -263,14 +263,13 @@ impl Lattice {
     /// Removes sites from the lattice according to the given mask
     ///
     /// TODO: This only removes points in the xy plane, and it should be generalized
-    pub fn apply_mask(mut self, mask: Mask) -> Self {
-        let mut rng = thread_rng();
+    pub fn apply_mask<R: Rng + ?Sized>(mut self, mask: Mask, rng: &mut R) -> Self {
         let site_mask: Vec<_> = self
             .sites
             .iter()
             .map(|s| {
                 let (x, y, _) = s.position();
-                mask.keep(x, y, &mut rng)
+                mask.keep(x, y, rng)
             })
             .collect();
         let mut counter = 0;
@@ -301,8 +300,12 @@ impl Lattice {
     }
 
     /// Replaces the sites labeled as `source` with sites in the `target` alloy
-    pub fn alloy_sites(mut self, source: &str, target: Alloy) -> Self {
-        let mut rng = thread_rng();
+    pub fn alloy_sites<R: Rng + ?Sized>(
+        mut self,
+        source: &str,
+        target: Alloy,
+        rng: &mut R,
+    ) -> Self {
         self.sites = self
             .sites
             .into_iter()
@@ -310,7 +313,7 @@ impl Lattice {
                 if site.kind() != source {
                     site
                 } else {
-                    site.with_kind(target.pick(&mut rng))
+                    site.with_kind(target.pick(rng))
                 }
             })
             .collect();
