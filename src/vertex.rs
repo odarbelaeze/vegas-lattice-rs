@@ -53,8 +53,10 @@ impl FromStr for Vertex {
 }
 
 impl Tagged for Vertex {
-    fn tags(&self) -> Option<&Vec<String>> {
-        self.tags.as_ref()
+    fn tags(&self) -> Option<Vec<&str>> {
+        self.tags
+            .as_ref()
+            .map(|tags| tags.iter().map(|tag| tag.as_ref()).collect())
     }
 }
 

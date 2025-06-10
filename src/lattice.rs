@@ -2,7 +2,7 @@
 
 use super::util::Axis;
 use crate::alloy::Alloy;
-use crate::error::VegasLatticeError;
+use crate::error::{Result, VegasLatticeError};
 use crate::mask::Mask;
 use crate::site::Site;
 use crate::vertex::Vertex;
@@ -25,12 +25,15 @@ pub struct Lattice {
 
 impl Lattice {
     /// Create a new lattice with the given size
-    pub fn new(size: (f64, f64, f64)) -> Self {
-        Lattice {
+    pub fn try_new(size: (f64, f64, f64)) -> Result<Self> {
+        if size.0 < 0.0 || size.1 < 0.0 || size.2 < 0.0 {
+            return Err(VegasLatticeError::NegativeSize);
+        }
+        Ok(Lattice {
             size,
             sites: Vec::new(),
             vertices: Vec::new(),
-        }
+        })
     }
 
     /// Create a simple cubic lattice with the given size _a_
@@ -119,21 +122,21 @@ impl Lattice {
     }
 
     /// Changes the size of the lattice
-    pub fn with_size(mut self, size: (f64, f64, f64)) -> Self {
+    pub fn try_with_size(mut self, size: (f64, f64, f64)) -> Result<Self> {
         self.size = size;
-        self
+        self.validate()
     }
 
     /// Changes the sites of the lattice
-    pub fn with_sites(mut self, sites: Vec<Site>) -> Self {
+    pub fn try_with_sites(mut self, sites: Vec<Site>) -> Result<Self> {
         self.sites = sites;
-        self
+        self.validate()
     }
 
     /// Changes the vertices of the lattice
-    pub fn with_vertices(mut self, vertices: Vec<Vertex>) -> Self {
+    pub fn try_with_vertices(mut self, vertices: Vec<Vertex>) -> Result<Self> {
         self.vertices = vertices;
-        self
+        self.validate()
     }
 
     fn are_vertices_consistent(&self) -> bool {
@@ -145,7 +148,7 @@ impl Lattice {
     }
 
     /// Validates the lattice
-    pub fn validate(self) -> Result<Self, VegasLatticeError> {
+    fn validate(self) -> Result<Self> {
         if !self.are_vertices_consistent() {
             return Err(VegasLatticeError::InconsistentVertices);
         }
@@ -320,7 +323,7 @@ impl Lattice {
 
 impl FromStr for Lattice {
     type Err = VegasLatticeError;
-    fn from_str(source: &str) -> Result<Lattice, Self::Err> {
+    fn from_str(source: &str) -> Result<Lattice> {
         let lattice: Lattice = serde_json::from_str(source)?;
         lattice.validate()
     }
@@ -332,25 +335,21 @@ mod test {
 
     #[test]
     fn drop_example() {
-        let lattice = Lattice::new((1.0, 1.0, 1.0))
-            .with_sites(vec![Site::new("Fe")])
-            .with_vertices(vec![Vertex::new(0, 0, (0, 0, 1))]);
+        let lattice = Lattice::sc(1.0);
         let lattice = lattice.drop_x();
-        assert!(lattice.vertices.len() == 1);
+        assert!(lattice.vertices().len() == 2);
     }
 
     #[test]
     fn drop_example_actually_dropping() {
-        let lattice = Lattice::new((1.0, 1.0, 1.0))
-            .with_sites(vec![Site::new("Fe")])
-            .with_vertices(vec![Vertex::new(0, 0, (0, 0, 1))]);
-        let lattice = lattice.drop_z();
-        assert!(lattice.vertices.is_empty());
+        let lattice = Lattice::sc(1.0);
+        let lattice = lattice.drop_all();
+        assert!(lattice.vertices().is_empty());
     }
 
     #[test]
     fn single_lattice_expansion_1d() {
-        let lattice = Lattice::new((1.0, 1.0, 1.0)).with_sites(vec![Site::new("Fe")]);
+        let lattice = Lattice::sc(1.0);
         let output = lattice.expand_x(2);
         assert_eq!(output.sites.len(), 2);
         assert!((output.sites[1].position().0 - 1.0).abs() < 1e-10);
@@ -358,7 +357,7 @@ mod test {
 
     #[test]
     fn double_lattice_expansion_1d() {
-        let lattice = Lattice::new((1.0, 1.0, 1.0)).with_sites(vec![Site::new("Fe")]);
+        let lattice = Lattice::sc(1.0);
         let lattice = lattice.expand_x(2);
         let output = lattice.expand_x(2);
         assert_eq!(output.sites.len(), 4);
@@ -369,9 +368,9 @@ mod test {
 
     #[test]
     fn single_lattice_expansion_1d_vertices() {
-        let lattice = Lattice::new((1.0, 1.0, 1.0))
-            .with_sites(vec![Site::new("Fe")])
-            .with_vertices(vec![Vertex::new(0, 0, (1, 0, 0))]);
+        let lattice = Lattice::sc(1.0)
+            .try_with_vertices(vec![Vertex::new(0, 0, (1, 0, 0))])
+            .unwrap();
         let output = lattice.expand_x(2);
         assert_eq!(output.vertices.len(), 2);
         assert_eq!(output.vertices[0].source(), 0);
@@ -384,9 +383,9 @@ mod test {
 
     #[test]
     fn single_lattice_expansion_1d_negative_vertices() {
-        let lattice = Lattice::new((1.0, 1.0, 1.0))
-            .with_sites(vec![Site::new("Fe")])
-            .with_vertices(vec![Vertex::new(0, 0, (-1, 0, 0))]);
+        let lattice = Lattice::sc(1.0)
+            .try_with_vertices(vec![Vertex::new(0, 0, (-1, 0, 0))])
+            .unwrap();
         let output = lattice.expand_x(2);
         assert_eq!(output.vertices.len(), 2);
         assert_eq!(output.vertices[0].source(), 0);
@@ -395,6 +394,68 @@ mod test {
         assert_eq!(output.vertices[1].source(), 1);
         assert_eq!(output.vertices[1].target(), 0);
         assert_eq!(output.vertices[1].delta().0, 0);
+    }
+
+    #[test]
+    fn test_sc_lattice() {
+        let lattice = Lattice::sc(1.0);
+        assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+        assert_eq!(lattice.sites().len(), 1);
+        assert_eq!(lattice.vertices().len(), 3)
+    }
+
+    #[test]
+    fn test_bcc_lattice() {
+        let lattice = Lattice::bcc(1.0);
+        assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+        assert_eq!(lattice.sites().len(), 2);
+        assert_eq!(lattice.vertices().len(), 8)
+    }
+
+    #[test]
+    fn test_fcc_lattice() {
+        let lattice = Lattice::fcc(1.0);
+        assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
+        assert_eq!(lattice.sites().len(), 4);
+        assert_eq!(lattice.vertices().len(), 12)
+    }
+
+    #[test]
+    fn test_wit_size() {
+        let lattice = Lattice::sc(1.0).try_with_size((2.0, 2.0, 2.0)).unwrap();
+        assert_eq!(lattice.size(), (2.0, 2.0, 2.0));
+    }
+
+    #[test]
+    fn test_with_sites() {
+        let lattice = Lattice::sc(1.0)
+            .try_with_sites(vec![Site::new("Fe"), Site::new("Ni")])
+            .unwrap();
+        assert_eq!(lattice.sites().len(), 2);
+    }
+
+    #[test]
+    fn test_with_vertices() {
+        let lattice = Lattice::sc(1.0)
+            .try_with_vertices(vec![
+                Vertex::new(0, 0, (1, 0, 0)),
+                Vertex::new(0, 0, (0, 1, 0)),
+            ])
+            .unwrap();
+        assert_eq!(lattice.vertices().len(), 2);
+    }
+
+    #[test]
+    fn test_lattice_with_inconsistent_vertices() {
+        // The vertex target is not in the list of sites
+        let result = Lattice::sc(1.0).try_with_vertices(vec![Vertex::new(0, 1, (1, 0, 0))]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_lattice_with_negative_size() {
+        let result = Lattice::try_new((-1.0, 1.0, 1.0));
+        assert!(result.is_err());
     }
 
     #[test]
