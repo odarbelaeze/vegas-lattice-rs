@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["lattice", "graph", "crystall", "materials"]
 categories = ["command-line-utilities", "science", "simulation"]
 license-file = "LICENSE.txt"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 serde_json = "1.0"
