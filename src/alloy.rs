@@ -1,7 +1,7 @@
 //! Let's abstract an alloy
 
 use crate::error::{Result, VegasLatticeError};
-use rand::{distributions::WeightedIndex, prelude::Distribution, Rng};
+use rand::{distr::weighted::WeightedIndex, distr::Distribution, Rng};
 
 /// An alloy is a collection of kinds of atoms and their ratios
 ///
@@ -40,7 +40,7 @@ impl Alloy {
     }
 
     /// Picks a kind of atom from the alloy
-    pub fn pick<R: Rng>(&self, rng: &mut R) -> &str {
+    pub fn pick<R: Rng + ?Sized>(&self, rng: &mut R) -> &str {
         &self.kinds[self.weights.sample(rng)]
     }
 }

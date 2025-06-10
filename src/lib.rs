@@ -82,15 +82,15 @@
 //!
 //! ```rust
 //! use vegas_lattice::{Lattice, Mask};
-//! use rand::thread_rng;
 //! use std::path::Path;
 //!
 //! let mask = Mask::try_new(Path::new("docs/pattern.png"), 100.0).unwrap();
+//! let mut rng = rand::rng();
 //! let lattice = Lattice::sc(1.0)
 //!     .expand_x(2)
 //!     .expand_y(2)
 //!     .expand_z(2)
-//!     .apply_mask(mask);
+//!     .apply_mask(mask, &mut rng);
 //! assert_eq!(lattice.size(), (2.0, 2.0, 2.0));
 //! assert!(lattice.sites().len() <= 8);
 //! assert!(lattice.vertices().len() <= 24);
@@ -105,7 +105,8 @@
 //! use vegas_lattice::{Alloy, Lattice};
 //!
 //! let alloy = Alloy::try_new(vec!["B", "C"], vec![50, 50]).unwrap();
-//! let lattice = Lattice::sc(1.0).alloy_sites("A", alloy);
+//! let mut rng = rand::rng();
+//! let lattice = Lattice::sc(1.0).alloy_sites("A", alloy, &mut rng);
 //! assert_eq!(lattice.sites().len(), 1);
 //! assert!(lattice.sites()[0].kind() == "B" || lattice.sites()[0].kind() == "C");
 //! ```

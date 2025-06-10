@@ -90,17 +90,19 @@ fn alloy(input: Option<&Path>, source: &str, targets: Vec<String>) -> Result<()>
         .map(|s| s.parse::<u32>().unwrap())
         .collect();
     let target: Vec<_> = kinds.into_iter().zip(ratios).collect();
-    let alloy = Alloy::try_from_targets(target)?;
     let mut lattice = read(input)?;
-    lattice = lattice.alloy_sites(source, alloy);
+    let alloy = Alloy::try_from_targets(target)?;
+    let mut rng = rand::rng();
+    lattice = lattice.alloy_sites(source, alloy, &mut rng);
     write(lattice);
     Ok(())
 }
 
 fn mask(input: Option<&Path>, path: &Path, ppu: f64) -> Result<()> {
-    let mask = Mask::try_new(path, ppu)?;
     let mut lattice = read(input)?;
-    lattice = lattice.apply_mask(mask);
+    let mask = Mask::try_new(path, ppu)?;
+    let mut rng = rand::rng();
+    lattice = lattice.apply_mask(mask, &mut rng);
     write(lattice);
     Ok(())
 }

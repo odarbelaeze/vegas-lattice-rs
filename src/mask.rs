@@ -15,7 +15,7 @@ use std::path::Path;
 /// use std::path::Path;
 ///
 /// let mask = Mask::try_new(Path::new("docs/bpm.png"), 1.0).unwrap();
-/// let keep = mask.keep(0.5, 0.5, &mut rand::thread_rng());
+/// let keep = mask.keep(0.5, 0.5, &mut rand::rng());
 ///
 /// assert!(keep || !keep);
 /// ```
@@ -45,7 +45,7 @@ impl Mask {
         let j = self.image.height() - j - 1;
         let alpha = self.image.get_pixel(i, j).channels()[3];
         let prob = f64::from(alpha) / 255.0;
-        let shoot: f64 = rng.gen();
+        let shoot: f64 = rng.random();
         shoot < prob
     }
 }
