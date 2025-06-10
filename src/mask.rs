@@ -15,7 +15,7 @@ use std::path::Path;
 /// use std::path::Path;
 ///
 /// let mask = Mask::try_new(Path::new("docs/bpm.png"), 1.0).unwrap();
-/// let keep = mask.keep(0.5, 0.5, &mut rand::rngs::ThreadRng::default());
+/// let keep = mask.keep(0.5, 0.5, &mut rand::rng());
 ///
 /// assert!(keep || !keep);
 /// ```
