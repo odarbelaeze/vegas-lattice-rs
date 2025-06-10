@@ -1,7 +1,7 @@
 //! Let's abstract an alloy
 
 use crate::error::{Result, VegasLatticeError};
-use rand::{distr::weighted::WeightedIndex, distr::Distribution, Rng};
+use rand::{Rng, distr::Distribution, distr::weighted::WeightedIndex};
 
 /// An alloy is a collection of kinds of atoms and their ratios
 ///
@@ -13,7 +13,7 @@ use rand::{distr::weighted::WeightedIndex, distr::Distribution, Rng};
 /// use vegas_lattice::Alloy;
 ///
 /// let alloy = Alloy::try_new(vec!["Fe", "Ni"], vec![1, 2]).unwrap();
-/// let kind = alloy.pick(&mut rand::thread_rng());
+/// let kind = alloy.pick(&mut rand::rng());
 ///
 /// assert!(kind == "Fe" || kind == "Ni");
 /// ```
@@ -71,7 +71,7 @@ mod tests {
         let result = Alloy::try_from_targets(targets);
         assert!(result.is_ok());
         let alloy = result.unwrap();
-        assert_eq!(alloy.pick(&mut rand::thread_rng()), "A");
+        assert_eq!(alloy.pick(&mut rand::rng()), "A");
     }
 
     #[test]
@@ -79,7 +79,7 @@ mod tests {
         let kinds = vec!["A", "B"];
         let ratios = vec![50, 50];
         let alloy = Alloy::try_new(kinds, ratios).unwrap();
-        let kind = alloy.pick(&mut rand::thread_rng());
+        let kind = alloy.pick(&mut rand::rng());
         assert!(kind == "A" || kind == "B");
     }
 
@@ -88,7 +88,7 @@ mod tests {
         let kinds = vec!["A", "B"];
         let ratios = vec![10, 90];
         let alloy = Alloy::try_new(kinds, ratios).unwrap();
-        let kind = alloy.pick(&mut rand::thread_rng());
+        let kind = alloy.pick(&mut rand::rng());
         assert!(kind == "A" || kind == "B");
     }
 
@@ -99,4 +99,3 @@ mod tests {
         assert!(result.is_err());
     }
 }
-
