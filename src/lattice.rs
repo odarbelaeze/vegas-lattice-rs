@@ -16,7 +16,7 @@ use std::str::FromStr;
 /// For now it only supports rectangular lattices. This is Orthorombic, Tetragonal and Cubic
 /// Bravais lattices. We assume the lattice vectors are aligned with the cartesian axes. While you
 /// can choose the lattice parameters _a_, _b_, and _c_ to be different.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Lattice {
     size: (f64, f64, f64),
     sites: Vec<Site>,
