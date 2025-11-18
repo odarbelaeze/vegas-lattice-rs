@@ -1,6 +1,5 @@
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
-use std::collections::HashMap;
-use std::collections::hash_map::Entry;
+use std::collections::{HashMap, hash_map::Entry};
 use std::error::Error;
 use std::fs::File;
 use std::io::{Read, stdin};
