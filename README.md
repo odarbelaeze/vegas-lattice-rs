@@ -15,21 +15,18 @@ yourself some lattices and otherwise it can be used as a rust crate (library).
 If you have `cargo` installed in your system, you can grab the executable from
 [crates.io] using:
 
-```
+```bash
 cargo install vegas-lattice
 ```
 
-after runing that you will have an executable `vegas-lattice` in your system
+after running that you will have an executable `vegas-lattice` in your system
 that will run as expected.
 
-If you intent to use it as a library just add the the following line to your
-`Cargo.toml`:
+To use it as a library, just run:
 
+```bash
+cargo add vegas-lattice
 ```
-vegas-lattice = "*"
-```
-
-Pin it at will when you're done, since this is an actively developed package.
 
 ## Usage
 
