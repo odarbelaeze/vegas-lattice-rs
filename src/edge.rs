@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use std::str::FromStr;
 
-/// Represents a vertex in a lattice.
+/// Represents an edge in a lattice.
 ///
-/// The `source` and `target` fields are the indices of the sites that the vertex connects.
+/// The `source` and `target` fields are the indices of the sites that the edge connects.
 /// The `delta` field is a tuple of the displacements of the target site from the source site.
 /// A `delta` of `(0, 0, 1)` would mean that the target site is one unit along the z axis from the
 /// source site.
@@ -16,7 +16,7 @@ use std::str::FromStr;
 ///
 /// # Examples
 ///
-/// Here is an example of how to create a vertex and access its fields:
+/// Here is an example of how to create an edge and access its fields:
 ///
 /// ```rust
 /// use vegas_lattice::Edge;
@@ -27,7 +27,7 @@ use std::str::FromStr;
 /// assert_eq!(edge.delta(), (0, 0, 1));
 /// ```
 ///
-/// Here's how to move a edge along an axis:
+/// Here's how to move an edge along an axis:
 ///
 /// ```rust
 /// use vegas_lattice::Edge;
@@ -61,7 +61,7 @@ impl Tagged for Edge {
 }
 
 impl Edge {
-    /// Creates a new vertex with the given source and target
+    /// Creates a new edge with the given source and target
     pub fn new(source: usize, target: usize, delta: (i32, i32, i32)) -> Self {
         Edge {
             source,
@@ -71,22 +71,22 @@ impl Edge {
         }
     }
 
-    /// Returns the `source` of the vertex
+    /// Returns the `source` of the edge
     pub fn source(&self) -> usize {
         self.source
     }
 
-    /// Returns the `target` of the vertex
+    /// Returns the `target` of the edge
     pub fn target(&self) -> usize {
         self.target
     }
 
-    /// Returns the `delta` of the vertex
+    /// Returns the `delta` of the edge
     pub fn delta(&self) -> (i32, i32, i32) {
         self.delta
     }
 
-    /// Chagges the tags of the vertex
+    /// Chagges the tags of the edge
     pub fn with_tags(mut self, tags: Vec<&str>) -> Self {
         self.tags = Some(tags.iter().map(|s| s.to_string()).collect());
         self
@@ -101,13 +101,13 @@ impl Edge {
         }
     }
 
-    /// Move the vertex along a given axis by a given amount
+    /// Move the edge along a given axis by a given amount
     ///
-    /// The only reason you would want to move a vertex along an axis is to grow a lattice along
+    /// The only reason you would want to move an edge along an axis is to grow a lattice along
     /// that axis. That's why we're going to need to know the parameters of how much the lattice is
     /// going to grow by. This function takes in the `nsites`, the number of sites in the original
     /// lattice, and the `limit`, the total number of units the lattice will be grown by. The
-    /// vertex will be changed assuming that the new number of sites will be `limit * nsites`.
+    /// edge will be changed assuming that the new number of sites will be `limit * nsites`.
     ///
     /// # Warning
     ///
@@ -115,8 +115,8 @@ impl Edge {
     ///
     /// # Arguments
     ///
-    /// * `axis` - The axis along which to move the vertex
-    /// * `amount` - The number of units to move the vertex
+    /// * `axis` - The axis along which to move the edge
+    /// * `amount` - The number of units to move the edge
     /// * `nsites` - The number of sites in the original lattice
     /// * `limit` - The total number of units the lattice will be grown by
     fn move_along(mut self, axis: Axis, amount: usize, nsites: usize, limit: usize) -> Self {
@@ -152,7 +152,7 @@ impl Edge {
         self.move_along(Axis::Z, amount, nsites, limit)
     }
 
-    /// Re-index the vertex
+    /// Re-index the edge
     pub fn reindex(mut self, index: &[usize]) -> Self {
         self.source = index[self.source];
         self.target = index[self.target];
@@ -165,72 +165,72 @@ mod test {
     use super::Edge;
 
     #[test]
-    fn vertex_can_be_created() {
-        let vertex = Edge::new(0, 1, (0, 0, 1));
-        assert_eq!(vertex.source, 0);
-        assert_eq!(vertex.target, 1);
-        assert_eq!(vertex.delta, (0, 0, 1));
+    fn edge_can_be_created() {
+        let edge = Edge::new(0, 1, (0, 0, 1));
+        assert_eq!(edge.source, 0);
+        assert_eq!(edge.target, 1);
+        assert_eq!(edge.delta, (0, 0, 1));
     }
 
     #[test]
-    fn vertex_can_be_moved() {
-        // The vertex would point to the second site in the next unit along the z axis
-        let vertex = Edge::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 0, 2, 2);
-        assert_eq!(vertex.source, 0);
-        assert_eq!(vertex.target, 3);
-        assert_eq!(vertex.delta, (0, 0, 0));
+    fn edge_can_be_moved() {
+        // The edge would point to the second site in the next unit along the z axis
+        let edge = Edge::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 0, 2, 2);
+        assert_eq!(edge.source, 0);
+        assert_eq!(edge.target, 3);
+        assert_eq!(edge.delta, (0, 0, 0));
     }
 
     #[test]
-    fn vertex_can_be_moved_2() {
-        // The vertex would point to the second site on the same unit along the z axis
-        let vertex = Edge::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 0, 2, 2);
-        assert_eq!(vertex.source, 0);
-        assert_eq!(vertex.target, 1);
-        assert_eq!(vertex.delta, (0, 0, 0));
+    fn edge_can_be_moved_2() {
+        // The edge would point to the second site on the same unit along the z axis
+        let edge = Edge::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 0, 2, 2);
+        assert_eq!(edge.source, 0);
+        assert_eq!(edge.target, 1);
+        assert_eq!(edge.delta, (0, 0, 0));
     }
 
     #[test]
-    fn vertex_can_be_moved_3() {
-        // The vertex would lay on the second unit along the z axis
-        let vertex = Edge::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 1, 2, 2);
-        assert_eq!(vertex.source, 2);
-        assert_eq!(vertex.target, 3);
-        assert_eq!(vertex.delta, (0, 0, 0));
+    fn edge_can_be_moved_3() {
+        // The edge would lay on the second unit along the z axis
+        let edge = Edge::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 1, 2, 2);
+        assert_eq!(edge.source, 2);
+        assert_eq!(edge.target, 3);
+        assert_eq!(edge.delta, (0, 0, 0));
     }
 
     #[test]
-    fn vertex_can_be_moved_4() {
-        // The vertex would point to the second site on the first unit along the z axis but in the
+    fn edge_can_be_moved_4() {
+        // The edge would point to the second site on the first unit along the z axis but in the
         // next new delta.
-        let vertex = Edge::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 1, 2, 2);
-        assert_eq!(vertex.source, 2);
-        assert_eq!(vertex.target, 1);
-        assert_eq!(vertex.delta, (0, 0, 1));
+        let edge = Edge::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 1, 2, 2);
+        assert_eq!(edge.source, 2);
+        assert_eq!(edge.target, 1);
+        assert_eq!(edge.delta, (0, 0, 1));
     }
 
     #[test]
-    fn vertex_can_be_tagged() {
-        let vertex = Edge::new(0, 1, (0, 0, 1)).with_tags(vec!["core"]);
-        assert_eq!(vertex.tags, Some(vec!["core".to_string()]));
+    fn edge_can_be_tagged() {
+        let edge = Edge::new(0, 1, (0, 0, 1)).with_tags(vec!["core"]);
+        assert_eq!(edge.tags, Some(vec!["core".to_string()]));
     }
 
     #[test]
     fn reindexing_kinda_works() {
-        let vertex = Edge::new(0, 1, (0, 0, 1)).reindex(&[1, 0]);
-        assert_eq!(vertex.source, 1);
-        assert_eq!(vertex.target, 0);
+        let edge = Edge::new(0, 1, (0, 0, 1)).reindex(&[1, 0]);
+        assert_eq!(edge.source, 1);
+        assert_eq!(edge.target, 0);
     }
 
     #[test]
-    fn vertex_will_take_optional_tags() {
+    fn edge_will_take_optional_tags() {
         let data = r#"
             {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
         "#;
-        let vertex_result: Result<Edge, _> = data.parse();
-        assert!(vertex_result.is_ok());
+        let edge_result: Result<Edge, _> = data.parse();
+        assert!(edge_result.is_ok());
         assert_eq!(
-            vertex_result.unwrap().tags,
+            edge_result.unwrap().tags,
             Some(vec!["core".to_string(), "inner".to_string()])
         );
     }

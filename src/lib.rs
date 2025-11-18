@@ -56,11 +56,11 @@
 //! the original lattice in the _x_ direction. The same operation can be applied to the _y_ and
 //! _z_. The edges of the lattice are also replicated.
 //!
-//! ## Vertex dropping
+//! ## Edge dropping
 //!
 //! Well, as you saw in the expand operation, we keep the edges that have a delta those belong
 //! to neighboring cells and can be interpreted as periodic boundary conditions, they also allow
-//! for future expansions of the lattice, if you want to _drop_ this behavour you can use the
+//! for future expansions of the lattice, if you want to _drop_ this behavior you can use the
 //! `drop` operation. Let's remove the periodic boundary conditions of the cubic lattice example we
 //! did before:
 //!

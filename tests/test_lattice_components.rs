@@ -1,4 +1,4 @@
-/// Public API tests for lattice components: Site, Vertex, Lattice
+/// Public API tests for lattice components: Site, Edge, Lattice
 use vegas_lattice::Lattice;
 
 #[test]
