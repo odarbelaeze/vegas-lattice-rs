@@ -1,11 +1,10 @@
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 use std::error::Error;
 use std::fs::File;
-use std::io::{stdin, Read};
+use std::io::{Read, stdin};
 use std::path::{Path, PathBuf};
-use vegas_lattice::{error::Result, io, Alloy, Lattice, Mask};
+use vegas_lattice::{Alloy, Lattice, Mask, error::Result, io};
 
 fn read(input: Option<&Path>) -> Result<Lattice> {
     let mut data = String::new();
@@ -151,14 +150,14 @@ fn into(input: Option<&Path>, format: Format) -> Result<()> {
                 println!("{} {} {} {} {}", i, x, y, z, material_id);
             }
             println!("# Interactions");
-            println!("{} isotropic", lattice.vertices().len());
-            for (i, vertex) in lattice.vertices().iter().enumerate() {
-                let (dx, dy, dz) = vertex.delta();
+            println!("{} isotropic", lattice.edges().len());
+            for (i, edge) in lattice.edges().iter().enumerate() {
+                let (dx, dy, dz) = edge.delta();
                 println!(
                     "{} {} {} {} {} {} {}",
                     i,
-                    vertex.source(),
-                    vertex.target(),
+                    edge.source(),
+                    edge.target(),
                     dx,
                     dy,
                     dz,

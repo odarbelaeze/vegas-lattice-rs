@@ -8,7 +8,7 @@
 //! ## Lattice creation
 //!
 //! `vegas_lattice` provides simple ways to create cubic and body centered cubic lattices. But you
-//! can create any number of custom lattices by creating the sites and vertices manually.
+//! can create any number of custom lattices by creating the sites and edges manually.
 //!
 //! Here is an example of how to create a simple cubic lattice:
 //!
@@ -19,7 +19,7 @@
 //!
 //! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
 //! assert_eq!(lattice.sites().len(), 1);
-//! assert_eq!(lattice.vertices().len(), 3);
+//! assert_eq!(lattice.edges().len(), 3);
 //! ```
 //!
 //! Here is an example of how to create a body centered cubic lattice:
@@ -31,7 +31,7 @@
 //!
 //! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
 //! assert_eq!(lattice.sites().len(), 2);
-//! assert_eq!(lattice.vertices().len(), 8);
+//! assert_eq!(lattice.edges().len(), 8);
 //! ```
 //!
 //! ## Lattice expansion
@@ -48,19 +48,19 @@
 //!
 //! assert_eq!(lattice.size(), (2.0, 1.0, 1.0));
 //! assert_eq!(lattice.sites().len(), 2);
-//! assert_eq!(lattice.vertices().len(), 6);
+//! assert_eq!(lattice.edges().len(), 6);
 //! ```
 //!
 //! You will end up with a lattice that is twice as big in the x direction. Notice how the number
-//! of sites and vertices is also doubled. This is because the lattice is expanded by replicating
+//! of sites and edges is also doubled. This is because the lattice is expanded by replicating
 //! the original lattice in the _x_ direction. The same operation can be applied to the _y_ and
-//! _z_. The vertices of the lattice are also replicated.
+//! _z_. The edges of the lattice are also replicated.
 //!
-//! ## Vertex dropping
+//! ## Edge dropping
 //!
-//! Well, as you saw in the expand operation, we keep the vertices that have a delta those belong
+//! Well, as you saw in the expand operation, we keep the edges that have a delta those belong
 //! to neighboring cells and can be interpreted as periodic boundary conditions, they also allow
-//! for future expansions of the lattice, if you want to _drop_ this behavour you can use the
+//! for future expansions of the lattice, if you want to _drop_ this behavior you can use the
 //! `drop` operation. Let's remove the periodic boundary conditions of the cubic lattice example we
 //! did before:
 //!
@@ -70,7 +70,7 @@
 //! let lattice = Lattice::sc(1.0).drop_x();
 //! assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
 //! assert_eq!(lattice.sites().len(), 1);
-//! assert_eq!(lattice.vertices().len(), 2);
+//! assert_eq!(lattice.edges().len(), 2);
 //! ```
 //!
 //! ## Masking
@@ -93,7 +93,7 @@
 //!     .apply_mask(mask, &mut rng);
 //! assert_eq!(lattice.size(), (2.0, 2.0, 2.0));
 //! assert!(lattice.sites().len() <= 8);
-//! assert!(lattice.vertices().len() <= 24);
+//! assert!(lattice.edges().len() <= 24);
 //! ```
 //!
 //! ## Alloying
@@ -115,15 +115,15 @@ pub mod error;
 pub mod io;
 
 mod alloy;
+mod edge;
 mod lattice;
 mod mask;
 mod site;
 mod util;
-mod vertex;
 
 pub use alloy::Alloy;
+pub use edge::Edge;
 pub use lattice::Lattice;
 pub use mask::Mask;
 pub use site::Site;
 pub use util::Tagged;
-pub use vertex::Vertex;

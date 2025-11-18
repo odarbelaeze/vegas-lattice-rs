@@ -14,8 +14,8 @@ pub enum VegasLatticeError {
     SerializationError(#[from] SerdeError),
     #[error("Formatter error: {0}")]
     ImageReadError(#[from] image::ImageError),
-    #[error("inconsistent vertices")]
-    InconsistentVertices,
+    #[error("inconsistent edges")]
+    InconsistentEdges,
     #[error("negative size")]
     NegativeSize,
     #[error("inconsistent weights")]

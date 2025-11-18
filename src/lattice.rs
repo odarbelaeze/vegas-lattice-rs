@@ -2,16 +2,16 @@
 
 use super::util::Axis;
 use crate::alloy::Alloy;
+use crate::edge::Edge;
 use crate::error::{Result, VegasLatticeError};
 use crate::mask::Mask;
 use crate::site::Site;
-use crate::vertex::Vertex;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter::repeat;
 use std::str::FromStr;
 
-/// A lattice is a collection of sites and vertices.
+/// A lattice is a collection of sites and edges.
 ///
 /// For now it only supports rectangular lattices. This is Orthorombic, Tetragonal and Cubic
 /// Bravais lattices. We assume the lattice vectors are aligned with the cartesian axes. While you
@@ -20,7 +20,7 @@ use std::str::FromStr;
 pub struct Lattice {
     size: (f64, f64, f64),
     sites: Vec<Site>,
-    vertices: Vec<Vertex>,
+    edges: Vec<Edge>,
 }
 
 impl Lattice {
@@ -32,22 +32,22 @@ impl Lattice {
         Ok(Lattice {
             size,
             sites: Vec::new(),
-            vertices: Vec::new(),
+            edges: Vec::new(),
         })
     }
 
     /// Create a simple cubic lattice with the given size _a_
     pub fn sc(a: f64) -> Self {
         let sites = vec![Site::new("A")];
-        let vertices = vec![
-            Vertex::new(0, 0, (1, 0, 0)),
-            Vertex::new(0, 0, (0, 1, 0)),
-            Vertex::new(0, 0, (0, 0, 1)),
+        let edges = vec![
+            Edge::new(0, 0, (1, 0, 0)),
+            Edge::new(0, 0, (0, 1, 0)),
+            Edge::new(0, 0, (0, 0, 1)),
         ];
         Lattice {
             size: (a, a, a),
             sites,
-            vertices,
+            edges,
         }
     }
 
@@ -57,20 +57,20 @@ impl Lattice {
             Site::new("A"),
             Site::new("B").with_position((0.5 * a, 0.5 * a, 0.5 * a)),
         ];
-        let vertices = vec![
-            Vertex::new(0, 1, (0, 0, 0)),
-            Vertex::new(0, 1, (0, -1, 0)),
-            Vertex::new(0, 1, (-1, 0, 0)),
-            Vertex::new(0, 1, (-1, -1, 0)),
-            Vertex::new(0, 1, (0, 0, -1)),
-            Vertex::new(0, 1, (0, -1, -1)),
-            Vertex::new(0, 1, (-1, 0, -1)),
-            Vertex::new(0, 1, (-1, -1, -1)),
+        let edges = vec![
+            Edge::new(0, 1, (0, 0, 0)),
+            Edge::new(0, 1, (0, -1, 0)),
+            Edge::new(0, 1, (-1, 0, 0)),
+            Edge::new(0, 1, (-1, -1, 0)),
+            Edge::new(0, 1, (0, 0, -1)),
+            Edge::new(0, 1, (0, -1, -1)),
+            Edge::new(0, 1, (-1, 0, -1)),
+            Edge::new(0, 1, (-1, -1, -1)),
         ];
         Lattice {
             size: (a, a, a),
             sites,
-            vertices,
+            edges,
         }
     }
 
@@ -82,27 +82,27 @@ impl Lattice {
             Site::new("C").with_position((0.5 * a, 0.0, 0.5 * a)),
             Site::new("D").with_position((0.0, 0.5 * a, 0.5 * a)),
         ];
-        let vertices = vec![
+        let edges = vec![
             // xy plane
-            Vertex::new(0, 1, (0, 0, 0)),
-            Vertex::new(0, 1, (-1, 0, 0)),
-            Vertex::new(0, 1, (-1, -1, 0)),
-            Vertex::new(0, 1, (0, -1, 0)),
+            Edge::new(0, 1, (0, 0, 0)),
+            Edge::new(0, 1, (-1, 0, 0)),
+            Edge::new(0, 1, (-1, -1, 0)),
+            Edge::new(0, 1, (0, -1, 0)),
             // xz plane
-            Vertex::new(0, 2, (0, 0, 0)),
-            Vertex::new(0, 2, (-1, 0, 0)),
-            Vertex::new(0, 2, (-1, 0, -1)),
-            Vertex::new(0, 2, (0, 0, -1)),
+            Edge::new(0, 2, (0, 0, 0)),
+            Edge::new(0, 2, (-1, 0, 0)),
+            Edge::new(0, 2, (-1, 0, -1)),
+            Edge::new(0, 2, (0, 0, -1)),
             // yz plane
-            Vertex::new(0, 3, (0, 0, 0)),
-            Vertex::new(0, 3, (0, -1, 0)),
-            Vertex::new(0, 3, (0, -1, -1)),
-            Vertex::new(0, 3, (0, 0, -1)),
+            Edge::new(0, 3, (0, 0, 0)),
+            Edge::new(0, 3, (0, -1, 0)),
+            Edge::new(0, 3, (0, -1, -1)),
+            Edge::new(0, 3, (0, 0, -1)),
         ];
         Lattice {
             size: (a, a, a),
             sites,
-            vertices,
+            edges,
         }
     }
 
@@ -116,9 +116,9 @@ impl Lattice {
         &self.sites
     }
 
-    /// Get the vertices of the lattice
-    pub fn vertices(&self) -> &[Vertex] {
-        &self.vertices
+    /// Get the edges of the lattice
+    pub fn edges(&self) -> &[Edge] {
+        &self.edges
     }
 
     /// Changes the size of the lattice
@@ -133,24 +133,24 @@ impl Lattice {
         self.validate()
     }
 
-    /// Changes the vertices of the lattice
-    pub fn try_with_vertices(mut self, vertices: Vec<Vertex>) -> Result<Self> {
-        self.vertices = vertices;
+    /// Changes the edges of the lattice
+    pub fn try_with_edges(mut self, edges: Vec<Edge>) -> Result<Self> {
+        self.edges = edges;
         self.validate()
     }
 
-    fn are_vertices_consistent(&self) -> bool {
-        self.vertices
+    fn are_edges_consistent(&self) -> bool {
+        self.edges
             .iter()
-            .map(|vertex| vertex.source())
-            .chain(self.vertices.iter().map(|vertex| vertex.target()))
+            .map(|edge| edge.source())
+            .chain(self.edges.iter().map(|edge| edge.target()))
             .all(|id| id < self.sites.len())
     }
 
     /// Validates the lattice
     fn validate(self) -> Result<Self> {
-        if !self.are_vertices_consistent() {
-            return Err(VegasLatticeError::InconsistentVertices);
+        if !self.are_edges_consistent() {
+            return Err(VegasLatticeError::InconsistentEdges);
         }
         if self.size.0 < 0.0 || self.size.1 < 0.0 || self.size.2 < 0.0 {
             return Err(VegasLatticeError::NegativeSize);
@@ -158,9 +158,9 @@ impl Lattice {
         Ok(self)
     }
 
-    /// Drops all the vertices that are periodic along the given axis
+    /// Drops all the edges that are periodic along the given axis
     fn drop_along(mut self, axis: Axis) -> Self {
-        self.vertices.retain(|v| {
+        self.edges.retain(|v| {
             let delta = v.delta();
             match axis {
                 Axis::X => delta.0 == 0,
@@ -204,7 +204,7 @@ impl Lattice {
     fn expand_along(mut self, axis: Axis, amount: usize) -> Self {
         let size = self.size_along(axis);
         let n_sites = self.sites.len();
-        let n_vertices = self.vertices.len();
+        let n_edges = self.edges.len();
 
         self.sites = (0..amount)
             .flat_map(|i| repeat(i).take(n_sites))
@@ -216,13 +216,13 @@ impl Lattice {
             })
             .collect();
 
-        self.vertices = (0..amount)
-            .flat_map(|i| repeat(i).take(n_vertices))
-            .zip(self.vertices.iter().cycle())
-            .map(|(index, vertex)| match axis {
-                Axis::X => vertex.clone().move_x(index, n_sites, amount),
-                Axis::Y => vertex.clone().move_y(index, n_sites, amount),
-                Axis::Z => vertex.clone().move_z(index, n_sites, amount),
+        self.edges = (0..amount)
+            .flat_map(|i| repeat(i).take(n_edges))
+            .zip(self.edges.iter().cycle())
+            .map(|(index, edge)| match axis {
+                Axis::X => edge.clone().move_x(index, n_sites, amount),
+                Axis::Y => edge.clone().move_y(index, n_sites, amount),
+                Axis::Z => edge.clone().move_z(index, n_sites, amount),
             })
             .collect();
 
@@ -290,8 +290,8 @@ impl Lattice {
             .filter(|&(i, ref _s)| site_mask[i])
             .map(|(_i, s)| s)
             .collect();
-        self.vertices = self
-            .vertices
+        self.edges = self
+            .edges
             .into_iter()
             .filter(|v| site_mask[v.source()] && site_mask[v.target()])
             .map(|v| v.reindex(&new_indices))
@@ -331,20 +331,20 @@ impl FromStr for Lattice {
 
 #[cfg(test)]
 mod test {
-    use crate::{Lattice, Site, Vertex};
+    use crate::{Edge, Lattice, Site};
 
     #[test]
     fn drop_example() {
         let lattice = Lattice::sc(1.0);
         let lattice = lattice.drop_x();
-        assert!(lattice.vertices().len() == 2);
+        assert!(lattice.edges().len() == 2);
     }
 
     #[test]
     fn drop_example_actually_dropping() {
         let lattice = Lattice::sc(1.0);
         let lattice = lattice.drop_all();
-        assert!(lattice.vertices().is_empty());
+        assert!(lattice.edges().is_empty());
     }
 
     #[test]
@@ -367,33 +367,33 @@ mod test {
     }
 
     #[test]
-    fn single_lattice_expansion_1d_vertices() {
+    fn single_lattice_expansion_1d_edges() {
         let lattice = Lattice::sc(1.0)
-            .try_with_vertices(vec![Vertex::new(0, 0, (1, 0, 0))])
+            .try_with_edges(vec![Edge::new(0, 0, (1, 0, 0))])
             .unwrap();
         let output = lattice.expand_x(2);
-        assert_eq!(output.vertices.len(), 2);
-        assert_eq!(output.vertices[0].source(), 0);
-        assert_eq!(output.vertices[0].target(), 1);
-        assert_eq!(output.vertices[0].delta().0, 0);
-        assert_eq!(output.vertices[1].source(), 1);
-        assert_eq!(output.vertices[1].target(), 0);
-        assert_eq!(output.vertices[1].delta().0, 1);
+        assert_eq!(output.edges.len(), 2);
+        assert_eq!(output.edges[0].source(), 0);
+        assert_eq!(output.edges[0].target(), 1);
+        assert_eq!(output.edges[0].delta().0, 0);
+        assert_eq!(output.edges[1].source(), 1);
+        assert_eq!(output.edges[1].target(), 0);
+        assert_eq!(output.edges[1].delta().0, 1);
     }
 
     #[test]
-    fn single_lattice_expansion_1d_negative_vertices() {
+    fn single_lattice_expansion_1d_negative_edges() {
         let lattice = Lattice::sc(1.0)
-            .try_with_vertices(vec![Vertex::new(0, 0, (-1, 0, 0))])
+            .try_with_edges(vec![Edge::new(0, 0, (-1, 0, 0))])
             .unwrap();
         let output = lattice.expand_x(2);
-        assert_eq!(output.vertices.len(), 2);
-        assert_eq!(output.vertices[0].source(), 0);
-        assert_eq!(output.vertices[0].target(), 1);
-        assert_eq!(output.vertices[0].delta().0, -1);
-        assert_eq!(output.vertices[1].source(), 1);
-        assert_eq!(output.vertices[1].target(), 0);
-        assert_eq!(output.vertices[1].delta().0, 0);
+        assert_eq!(output.edges.len(), 2);
+        assert_eq!(output.edges[0].source(), 0);
+        assert_eq!(output.edges[0].target(), 1);
+        assert_eq!(output.edges[0].delta().0, -1);
+        assert_eq!(output.edges[1].source(), 1);
+        assert_eq!(output.edges[1].target(), 0);
+        assert_eq!(output.edges[1].delta().0, 0);
     }
 
     #[test]
@@ -401,7 +401,7 @@ mod test {
         let lattice = Lattice::sc(1.0);
         assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
         assert_eq!(lattice.sites().len(), 1);
-        assert_eq!(lattice.vertices().len(), 3)
+        assert_eq!(lattice.edges().len(), 3)
     }
 
     #[test]
@@ -409,7 +409,7 @@ mod test {
         let lattice = Lattice::bcc(1.0);
         assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
         assert_eq!(lattice.sites().len(), 2);
-        assert_eq!(lattice.vertices().len(), 8)
+        assert_eq!(lattice.edges().len(), 8)
     }
 
     #[test]
@@ -417,7 +417,7 @@ mod test {
         let lattice = Lattice::fcc(1.0);
         assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
         assert_eq!(lattice.sites().len(), 4);
-        assert_eq!(lattice.vertices().len(), 12)
+        assert_eq!(lattice.edges().len(), 12)
     }
 
     #[test]
@@ -435,20 +435,17 @@ mod test {
     }
 
     #[test]
-    fn test_with_vertices() {
+    fn test_with_edges() {
         let lattice = Lattice::sc(1.0)
-            .try_with_vertices(vec![
-                Vertex::new(0, 0, (1, 0, 0)),
-                Vertex::new(0, 0, (0, 1, 0)),
-            ])
+            .try_with_edges(vec![Edge::new(0, 0, (1, 0, 0)), Edge::new(0, 0, (0, 1, 0))])
             .unwrap();
-        assert_eq!(lattice.vertices().len(), 2);
+        assert_eq!(lattice.edges().len(), 2);
     }
 
     #[test]
-    fn test_lattice_with_inconsistent_vertices() {
-        // The vertex target is not in the list of sites
-        let result = Lattice::sc(1.0).try_with_vertices(vec![Vertex::new(0, 1, (1, 0, 0))]);
+    fn test_lattice_with_inconsistent_edges() {
+        // The edge target is not in the list of sites
+        let result = Lattice::sc(1.0).try_with_edges(vec![Edge::new(0, 1, (1, 0, 0))]);
         assert!(result.is_err());
     }
 
@@ -468,7 +465,7 @@ mod test {
                     "position": [0.0, 0.0, 0.0]
                 }
             ],
-            "vertices": [
+            "edges": [
                 {
                     "source": 0,
                     "target": 0,
@@ -479,6 +476,6 @@ mod test {
         let lattice: Lattice = lattice.parse().unwrap();
         assert_eq!(lattice.size(), (1.0, 1.0, 1.0));
         assert_eq!(lattice.sites().len(), 1);
-        assert_eq!(lattice.vertices().len(), 1);
+        assert_eq!(lattice.edges().len(), 1);
     }
 }

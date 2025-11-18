@@ -1,4 +1,4 @@
-/// Public API tests for lattice components: Site, Vertex, Lattice
+/// Public API tests for lattice components: Site, Edge, Lattice
 use vegas_lattice::Lattice;
 
 #[test]
@@ -9,7 +9,7 @@ fn lattice_example() {
             "sites": [
                 {"kind": "Fe", "position": [0, 0, 0]}
             ],
-            "vertices": [
+            "edges": [
                 {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
             ]
         }
@@ -19,14 +19,14 @@ fn lattice_example() {
 }
 
 #[test]
-fn lattice_will_fail_for_inconsistent_vertices() {
+fn lattice_will_fail_for_inconsistent_edges() {
     let data = r#"
         {
             "size": [1, 1, 1],
             "sites": [
                 {"kind": "Fe", "position": [0, 0, 0]}
             ],
-            "vertices": [
+            "edges": [
                 {"source": 0, "target": 1, "delta": [0, 0, 1], "tags": ["core", "inner"]}
             ]
         }
@@ -43,7 +43,7 @@ fn lattice_will_fail_for_inconsistent_size() {
             "sites": [
                 {"kind": "Fe", "position": [0, 0, 0]}
             ],
-            "vertices": []
+            "edges": []
         }
     "#;
     let lattice_result: Result<Lattice, _> = data.parse();
