@@ -1,4 +1,4 @@
-use crate::util::{python_mod, Axis, Tagged};
+use crate::util::{Axis, Tagged, python_mod};
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use std::str::FromStr;
@@ -19,40 +19,40 @@ use std::str::FromStr;
 /// Here is an example of how to create a vertex and access its fields:
 ///
 /// ```rust
-/// use vegas_lattice::Vertex;
+/// use vegas_lattice::Edge;
 ///
-/// let vertex = Vertex::new(0, 1, (0, 0, 1));
-/// assert_eq!(vertex.source(), 0);
-/// assert_eq!(vertex.target(), 1);
-/// assert_eq!(vertex.delta(), (0, 0, 1));
+/// let edge = Edge::new(0, 1, (0, 0, 1));
+/// assert_eq!(edge.source(), 0);
+/// assert_eq!(edge.target(), 1);
+/// assert_eq!(edge.delta(), (0, 0, 1));
 /// ```
 ///
-/// Here's how to move a vertex along an axis:
+/// Here's how to move a edge along an axis:
 ///
 /// ```rust
-/// use vegas_lattice::Vertex;
+/// use vegas_lattice::Edge;
 ///
-/// let vertex = Vertex::new(0, 1, (0, 0, 1)).move_z(1, 2, 3);
-/// assert_eq!(vertex.source(), 2);
-/// assert_eq!(vertex.target(), 5);
-/// assert_eq!(vertex.delta(), (0, 0, 0));
+/// let edge = Edge::new(0, 1, (0, 0, 1)).move_z(1, 2, 3);
+/// assert_eq!(edge.source(), 2);
+/// assert_eq!(edge.target(), 5);
+/// assert_eq!(edge.delta(), (0, 0, 0));
 /// ```
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Vertex {
+pub struct Edge {
     source: usize,
     target: usize,
     delta: (i32, i32, i32),
     tags: Option<Vec<String>>,
 }
 
-impl FromStr for Vertex {
+impl FromStr for Edge {
     type Err = SerdeError;
-    fn from_str(source: &str) -> Result<Vertex, Self::Err> {
+    fn from_str(source: &str) -> Result<Edge, Self::Err> {
         serde_json::from_str(source)
     }
 }
 
-impl Tagged for Vertex {
+impl Tagged for Edge {
     fn tags(&self) -> Option<Vec<&str>> {
         self.tags
             .as_ref()
@@ -60,10 +60,10 @@ impl Tagged for Vertex {
     }
 }
 
-impl Vertex {
+impl Edge {
     /// Creates a new vertex with the given source and target
     pub fn new(source: usize, target: usize, delta: (i32, i32, i32)) -> Self {
-        Vertex {
+        Edge {
             source,
             target,
             delta,
@@ -162,11 +162,11 @@ impl Vertex {
 
 #[cfg(test)]
 mod test {
-    use super::Vertex;
+    use super::Edge;
 
     #[test]
     fn vertex_can_be_created() {
-        let vertex = Vertex::new(0, 1, (0, 0, 1));
+        let vertex = Edge::new(0, 1, (0, 0, 1));
         assert_eq!(vertex.source, 0);
         assert_eq!(vertex.target, 1);
         assert_eq!(vertex.delta, (0, 0, 1));
@@ -175,7 +175,7 @@ mod test {
     #[test]
     fn vertex_can_be_moved() {
         // The vertex would point to the second site in the next unit along the z axis
-        let vertex = Vertex::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 0, 2, 2);
+        let vertex = Edge::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 0, 2, 2);
         assert_eq!(vertex.source, 0);
         assert_eq!(vertex.target, 3);
         assert_eq!(vertex.delta, (0, 0, 0));
@@ -184,7 +184,7 @@ mod test {
     #[test]
     fn vertex_can_be_moved_2() {
         // The vertex would point to the second site on the same unit along the z axis
-        let vertex = Vertex::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 0, 2, 2);
+        let vertex = Edge::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 0, 2, 2);
         assert_eq!(vertex.source, 0);
         assert_eq!(vertex.target, 1);
         assert_eq!(vertex.delta, (0, 0, 0));
@@ -193,7 +193,7 @@ mod test {
     #[test]
     fn vertex_can_be_moved_3() {
         // The vertex would lay on the second unit along the z axis
-        let vertex = Vertex::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 1, 2, 2);
+        let vertex = Edge::new(0, 1, (0, 0, 0)).move_along(super::Axis::Z, 1, 2, 2);
         assert_eq!(vertex.source, 2);
         assert_eq!(vertex.target, 3);
         assert_eq!(vertex.delta, (0, 0, 0));
@@ -203,7 +203,7 @@ mod test {
     fn vertex_can_be_moved_4() {
         // The vertex would point to the second site on the first unit along the z axis but in the
         // next new delta.
-        let vertex = Vertex::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 1, 2, 2);
+        let vertex = Edge::new(0, 1, (0, 0, 1)).move_along(super::Axis::Z, 1, 2, 2);
         assert_eq!(vertex.source, 2);
         assert_eq!(vertex.target, 1);
         assert_eq!(vertex.delta, (0, 0, 1));
@@ -211,13 +211,13 @@ mod test {
 
     #[test]
     fn vertex_can_be_tagged() {
-        let vertex = Vertex::new(0, 1, (0, 0, 1)).with_tags(vec!["core"]);
+        let vertex = Edge::new(0, 1, (0, 0, 1)).with_tags(vec!["core"]);
         assert_eq!(vertex.tags, Some(vec!["core".to_string()]));
     }
 
     #[test]
     fn reindexing_kinda_works() {
-        let vertex = Vertex::new(0, 1, (0, 0, 1)).reindex(&[1, 0]);
+        let vertex = Edge::new(0, 1, (0, 0, 1)).reindex(&[1, 0]);
         assert_eq!(vertex.source, 1);
         assert_eq!(vertex.target, 0);
     }
@@ -227,7 +227,7 @@ mod test {
         let data = r#"
             {"source": 0, "target": 0, "delta": [0, 0, 1], "tags": ["core", "inner"]}
         "#;
-        let vertex_result: Result<Vertex, _> = data.parse();
+        let vertex_result: Result<Edge, _> = data.parse();
         assert!(vertex_result.is_ok());
         assert_eq!(
             vertex_result.unwrap().tags,
