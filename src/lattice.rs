@@ -250,25 +250,24 @@ impl Lattice {
         self.expand_along(Axis::Z, amount)
     }
 
-    /// Expand lattice by the same ammount along all axes
+    /// Expand lattice by the same amount along all axes
     pub fn expand_all(self, amount: usize) -> Self {
         self.expand_x(amount).expand_y(amount).expand_z(amount)
     }
 
-    /// Expand lattice by the given ammount along all axes
+    /// Expand lattice by the given amount along all axes
     pub fn expand(self, x: usize, y: usize, z: usize) -> Self {
         self.expand_x(x).expand_y(y).expand_z(z)
     }
 
-    /// Removes sites from the lattice according to the given mask
-    ///
-    /// TODO: This only removes points in the xy plane, and it should be generalized
-    pub fn apply_mask<R: Rng>(mut self, mask: Mask, rng: &mut R) -> Self {
+    /// Removes sites from the lattice according to the given mask and
+    /// perpendicular to the given axis.
+    fn apply_mask<R: Rng>(mut self, mask: Mask, axis: Axis, rng: &mut R) -> Self {
         let site_mask: Vec<_> = self
             .sites
             .iter()
             .map(|s| {
-                let (x, y, _) = s.position();
+                let (x, y) = axis.project_in_plane(s.position());
                 mask.keep(x, y, rng)
             })
             .collect();
@@ -297,6 +296,21 @@ impl Lattice {
             .map(|v| v.reindex(&new_indices))
             .collect();
         self
+    }
+
+    // Apply a mask in the plan perpendicular to the x axis.
+    pub fn apply_mask_x<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
+        self.apply_mask(mask, Axis::X, rng)
+    }
+
+    // Apply a mask in the plan perpendicular to the y axis.
+    pub fn apply_mask_y<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
+        self.apply_mask(mask, Axis::Y, rng)
+    }
+
+    // Apply a mask in the plan perpendicular to the z axis.
+    pub fn apply_mask_z<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
+        self.apply_mask(mask, Axis::Z, rng)
     }
 
     /// Replaces the sites labeled as `source` with sites in the `target` alloy

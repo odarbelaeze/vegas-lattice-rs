@@ -101,7 +101,7 @@ fn mask(input: Option<&Path>, path: &Path, ppu: f64) -> Result<()> {
     let mut lattice = read(input)?;
     let mask = Mask::try_new(path, ppu)?;
     let mut rng = rand::rng();
-    lattice = lattice.apply_mask(mask, &mut rng);
+    lattice = lattice.apply_mask_z(mask, &mut rng);
     write(lattice);
     Ok(())
 }

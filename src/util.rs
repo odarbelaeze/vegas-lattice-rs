@@ -11,6 +11,17 @@ pub(crate) enum Axis {
     Z,
 }
 
+impl Axis {
+    pub(crate) fn project_in_plane(&self, point: (f64, f64, f64)) -> (f64, f64) {
+        let (x, y, z) = point;
+        match self {
+            Axis::X => (y, z),
+            Axis::Y => (x, z),
+            Axis::Z => (x, y),
+        }
+    }
+}
+
 pub(crate) fn python_mod(num: i32, modulus: usize) -> (i32, i32) {
     if num < 0 {
         (
