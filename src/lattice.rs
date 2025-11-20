@@ -1,15 +1,16 @@
 //! Lattice data structure
 
 use super::util::Axis;
-use crate::alloy::Alloy;
-use crate::edge::Edge;
-use crate::error::{Result, VegasLatticeError};
-use crate::mask::Mask;
-use crate::site::Site;
+use crate::{
+    alloy::Alloy,
+    edge::Edge,
+    error::{Result, VegasLatticeError},
+    mask::Mask,
+    site::Site,
+};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::iter::repeat;
-use std::str::FromStr;
+use std::{iter::repeat_n, str::FromStr};
 
 /// A lattice is a collection of sites and edges.
 ///
@@ -207,7 +208,7 @@ impl Lattice {
         let n_edges = self.edges.len();
 
         self.sites = (0..amount)
-            .flat_map(|i| repeat(i).take(n_sites))
+            .flat_map(|i| repeat_n(i, n_sites))
             .zip(self.sites().iter().cycle())
             .map(|(index, site)| match axis {
                 Axis::X => site.clone().move_x((index as f64) * size),
@@ -217,7 +218,7 @@ impl Lattice {
             .collect();
 
         self.edges = (0..amount)
-            .flat_map(|i| repeat(i).take(n_edges))
+            .flat_map(|i| repeat_n(i, n_edges))
             .zip(self.edges.iter().cycle())
             .map(|(index, edge)| match axis {
                 Axis::X => edge.clone().move_x(index, n_sites, amount),

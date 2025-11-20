@@ -41,7 +41,7 @@ pub trait Tagged {
     fn has_tag(&self, tag: &str) -> bool {
         match self.tags() {
             None => false,
-            Some(tags) => tags.iter().any(|t| *t == tag),
+            Some(tags) => tags.contains(&tag),
         }
     }
 }
