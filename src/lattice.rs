@@ -263,7 +263,7 @@ impl Lattice {
     /// Removes sites from the lattice according to the given mask
     ///
     /// TODO: This only removes points in the xy plane, and it should be generalized
-    pub fn apply_mask<R: Rng + ?Sized>(mut self, mask: Mask, rng: &mut R) -> Self {
+    pub fn apply_mask<R: Rng>(mut self, mask: Mask, rng: &mut R) -> Self {
         let site_mask: Vec<_> = self
             .sites
             .iter()
@@ -300,12 +300,7 @@ impl Lattice {
     }
 
     /// Replaces the sites labeled as `source` with sites in the `target` alloy
-    pub fn alloy_sites<R: Rng + ?Sized>(
-        mut self,
-        source: &str,
-        target: Alloy,
-        rng: &mut R,
-    ) -> Self {
+    pub fn alloy_sites<R: Rng>(mut self, source: &str, target: Alloy, rng: &mut R) -> Self {
         self.sites = self
             .sites
             .into_iter()
