@@ -14,9 +14,10 @@ use std::{iter::repeat_n, str::FromStr};
 
 /// A lattice is a collection of sites and edges.
 ///
-/// For now it only supports rectangular lattices. This is Orthorombic, Tetragonal and Cubic
-/// Bravais lattices. We assume the lattice vectors are aligned with the cartesian axes. While you
-/// can choose the lattice parameters _a_, _b_, and _c_ to be different.
+/// For now it only supports rectangular lattices. This is Orthorombic,
+/// Tetragonal and Cubic Bravais lattices. We assume the lattice vectors are
+/// aligned with the cartesian axes. While you can choose the lattice parameters
+/// _a_, _b_, and _c_ to be different.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Lattice {
     size: (f64, f64, f64),

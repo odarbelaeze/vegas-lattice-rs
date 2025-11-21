@@ -1,9 +1,11 @@
 use clap::{ArgAction, Parser, Subcommand, ValueEnum};
-use std::collections::{HashMap, hash_map::Entry};
-use std::error::Error;
-use std::fs::File;
-use std::io::{Read, stdin};
-use std::path::{Path, PathBuf};
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    error::Error,
+    fs::File,
+    io::{Read, stdin},
+    path::{Path, PathBuf},
+};
 use vegas_lattice::{Alloy, Lattice, Mask, error::Result, io};
 
 fn read(input: Option<&Path>) -> Result<Lattice> {
