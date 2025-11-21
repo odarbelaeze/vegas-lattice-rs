@@ -1,5 +1,4 @@
-//! Simpe tools for dealing with masks, and abstracts the requirement of
-//! image.
+//! Simple tools for dealing with masks, and abstracts the requirement of image.
 
 use crate::error::VegasLatticeError;
 use image::{DynamicImage, GenericImageView, Pixel};
@@ -36,9 +35,9 @@ impl Mask {
         })
     }
 
-    /// Computes wheter to keep a site or not given the coordinates of the site and a random
-    /// number generator.
-    pub fn keep<R: Rng + ?Sized>(&self, x: f64, y: f64, rng: &mut R) -> bool {
+    /// Computes whether to keep a site or not given the coordinates of the site
+    /// and a random number generator.
+    pub fn keep<R: Rng>(&self, x: f64, y: f64, rng: &mut R) -> bool {
         // TODO: Consider using python_mod here
         let i = (x * self.ppu).floor() as u32 % self.image.width();
         let j = (y * self.ppu).floor() as u32 % self.image.height();

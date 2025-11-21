@@ -1,15 +1,16 @@
 //! Lattice data structure
 
 use super::util::Axis;
-use crate::alloy::Alloy;
-use crate::edge::Edge;
-use crate::error::{Result, VegasLatticeError};
-use crate::mask::Mask;
-use crate::site::Site;
+use crate::{
+    alloy::Alloy,
+    edge::Edge,
+    error::{Result, VegasLatticeError},
+    mask::Mask,
+    site::Site,
+};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::iter::repeat;
-use std::str::FromStr;
+use std::{iter::repeat_n, str::FromStr};
 
 /// A lattice is a collection of sites and edges.
 ///
@@ -207,7 +208,7 @@ impl Lattice {
         let n_edges = self.edges.len();
 
         self.sites = (0..amount)
-            .flat_map(|i| repeat(i).take(n_sites))
+            .flat_map(|i| repeat_n(i, n_sites))
             .zip(self.sites().iter().cycle())
             .map(|(index, site)| match axis {
                 Axis::X => site.clone().move_x((index as f64) * size),
@@ -217,7 +218,7 @@ impl Lattice {
             .collect();
 
         self.edges = (0..amount)
-            .flat_map(|i| repeat(i).take(n_edges))
+            .flat_map(|i| repeat_n(i, n_edges))
             .zip(self.edges.iter().cycle())
             .map(|(index, edge)| match axis {
                 Axis::X => edge.clone().move_x(index, n_sites, amount),
@@ -250,25 +251,24 @@ impl Lattice {
         self.expand_along(Axis::Z, amount)
     }
 
-    /// Expand lattice by the same ammount along all axes
+    /// Expand lattice by the same amount along all axes
     pub fn expand_all(self, amount: usize) -> Self {
         self.expand_x(amount).expand_y(amount).expand_z(amount)
     }
 
-    /// Expand lattice by the given ammount along all axes
+    /// Expand lattice by the given amount along all axes
     pub fn expand(self, x: usize, y: usize, z: usize) -> Self {
         self.expand_x(x).expand_y(y).expand_z(z)
     }
 
-    /// Removes sites from the lattice according to the given mask
-    ///
-    /// TODO: This only removes points in the xy plane, and it should be generalized
-    pub fn apply_mask<R: Rng + ?Sized>(mut self, mask: Mask, rng: &mut R) -> Self {
+    /// Removes sites from the lattice according to the given mask and
+    /// perpendicular to the given axis.
+    fn apply_mask<R: Rng>(mut self, mask: Mask, axis: Axis, rng: &mut R) -> Self {
         let site_mask: Vec<_> = self
             .sites
             .iter()
             .map(|s| {
-                let (x, y, _) = s.position();
+                let (x, y) = axis.project_in_plane(s.position());
                 mask.keep(x, y, rng)
             })
             .collect();
@@ -299,13 +299,23 @@ impl Lattice {
         self
     }
 
+    // Apply a mask in the plane perpendicular to the x axis.
+    pub fn apply_mask_x<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
+        self.apply_mask(mask, Axis::X, rng)
+    }
+
+    // Apply a mask in the plane perpendicular to the y axis.
+    pub fn apply_mask_y<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
+        self.apply_mask(mask, Axis::Y, rng)
+    }
+
+    // Apply a mask in the plane perpendicular to the z axis.
+    pub fn apply_mask_z<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
+        self.apply_mask(mask, Axis::Z, rng)
+    }
+
     /// Replaces the sites labeled as `source` with sites in the `target` alloy
-    pub fn alloy_sites<R: Rng + ?Sized>(
-        mut self,
-        source: &str,
-        target: Alloy,
-        rng: &mut R,
-    ) -> Self {
+    pub fn alloy_sites<R: Rng>(mut self, source: &str, target: Alloy, rng: &mut R) -> Self {
         self.sites = self
             .sites
             .into_iter()

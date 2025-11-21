@@ -97,11 +97,15 @@ fn alloy(input: Option<&Path>, source: &str, targets: Vec<String>) -> Result<()>
     Ok(())
 }
 
-fn mask(input: Option<&Path>, path: &Path, ppu: f64) -> Result<()> {
+fn mask(input: Option<&Path>, path: &Path, plane: Plane, ppu: f64) -> Result<()> {
     let mut lattice = read(input)?;
     let mask = Mask::try_new(path, ppu)?;
     let mut rng = rand::rng();
-    lattice = lattice.apply_mask(mask, &mut rng);
+    lattice = match plane {
+        Plane::XY => lattice.apply_mask_z(mask, &mut rng),
+        Plane::XZ => lattice.apply_mask_y(mask, &mut rng),
+        Plane::YZ => lattice.apply_mask_x(mask, &mut rng),
+    };
     write(lattice);
     Ok(())
 }
@@ -175,8 +179,19 @@ enum Format {
     Xyz,
     /// TSV file format
     Tsv,
-    /// Vampire unitcell file format
+    /// Vampire unit cell file format
     Vampire,
+}
+
+#[derive(Debug, Default, Clone, ValueEnum)]
+enum Plane {
+    /// The xy plane.
+    #[default]
+    XY,
+    /// The xz plane.
+    XZ,
+    /// The yz plane.
+    YZ,
 }
 
 #[derive(Debug, Subcommand)]
@@ -259,8 +274,11 @@ enum SubCommand {
         mask: PathBuf,
         /// Input file
         input: Option<PathBuf>,
-        #[arg(short, long, default_value = "10")]
+        /// Plane to mask.
+        #[arg(long, default_value = "xy")]
+        plane: Plane,
         /// Pixels per unit
+        #[arg(short, long, default_value = "10")]
         ppu: f64,
     },
     /// Convert lattice into a different format
@@ -310,8 +328,9 @@ fn main() {
         SubCommand::Mask {
             mask: mask_path,
             input,
+            plane,
             ppu,
-        } => mask(input.as_deref(), &mask_path, ppu),
+        } => mask(input.as_deref(), &mask_path, plane, ppu),
         SubCommand::Into { format, input } => into(input.as_deref(), format),
     };
 
