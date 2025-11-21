@@ -7,8 +7,9 @@
 //!
 //! ## Lattice creation
 //!
-//! `vegas_lattice` provides simple ways to create cubic and body centered cubic lattices. But you
-//! can create any number of custom lattices by creating the sites and edges manually.
+//! `vegas_lattice` provides simple ways to create cubic and body centered cubic
+//! lattices. But you can create any number of custom lattices by creating the
+//! sites and edges manually.
 //!
 //! Here is an example of how to create a simple cubic lattice:
 //!
