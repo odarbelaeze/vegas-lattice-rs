@@ -299,17 +299,17 @@ impl Lattice {
         self
     }
 
-    // Apply a mask in the plan perpendicular to the x axis.
+    // Apply a mask in the plane perpendicular to the x axis.
     pub fn apply_mask_x<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
         self.apply_mask(mask, Axis::X, rng)
     }
 
-    // Apply a mask in the plan perpendicular to the y axis.
+    // Apply a mask in the plane perpendicular to the y axis.
     pub fn apply_mask_y<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
         self.apply_mask(mask, Axis::Y, rng)
     }
 
-    // Apply a mask in the plan perpendicular to the z axis.
+    // Apply a mask in the plane perpendicular to the z axis.
     pub fn apply_mask_z<R: Rng>(self, mask: Mask, rng: &mut R) -> Self {
         self.apply_mask(mask, Axis::Z, rng)
     }
