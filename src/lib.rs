@@ -118,6 +118,7 @@
 
 pub mod error;
 pub mod io;
+pub mod pov;
 
 mod alloy;
 mod edge;

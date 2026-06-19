@@ -3,10 +3,10 @@ use std::{
     collections::{HashMap, hash_map::Entry},
     error::Error,
     fs::File,
-    io::{Read, stdin},
+    io::{Read, stdin, stdout},
     path::{Path, PathBuf},
 };
-use vegas_lattice::{Alloy, Lattice, Mask, error::Result, io};
+use vegas_lattice::{Alloy, Lattice, Mask, error::Result, io, pov};
 
 fn read(input: Option<&Path>) -> Result<Lattice> {
     let mut data = String::new();
@@ -171,6 +171,9 @@ fn into(input: Option<&Path>, format: Format) -> Result<()> {
                 );
             }
         }
+        Format::Pov => {
+            pov::to_povray(&mut stdout(), &lattice)?;
+        }
     }
     Ok(())
 }
@@ -183,6 +186,8 @@ enum Format {
     Tsv,
     /// Vampire unit cell file format
     Vampire,
+    /// POV-Ray file format
+    Pov,
 }
 
 #[derive(Debug, Default, Clone, ValueEnum)]
