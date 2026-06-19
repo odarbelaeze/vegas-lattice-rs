@@ -2,7 +2,7 @@
 
 use crate::error::VegasLatticeError;
 use image::{DynamicImage, GenericImageView, Pixel};
-use rand::Rng;
+use rand::{Rng, RngExt};
 use std::path::Path;
 
 /// A mask represents a 2D image that can be used to filter out points
